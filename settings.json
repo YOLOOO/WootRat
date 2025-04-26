@@ -1,0 +1,7 @@
+{
+    "sensitivity": 12.0,
+    "deadzone": 0.1,
+    "curve_factor": 2.0,
+    "mouse_active": true,
+    "key_mapping": "F13-F16 Keys"
+}
