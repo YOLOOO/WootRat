@@ -8,7 +8,7 @@ Why? Because I just hate mice.... #Python
 ## Features
 - Based on Wooting analog SDK
 - Smooth mouse movement using analog inputs.
-- Configurable sensitivity, deadzone, and curve factor.
+- Configurable sensitivity (movement and scroll), deadzone, and curve factor.
 - Multiple key mapping options (Arrow Keys, WASD, F13-F16).
 - Easy-to-use GUI for settings.
 
@@ -18,9 +18,10 @@ Why? Because I just hate mice.... #Python
 2. Double-click the `.exe` file to launch the application.
 3. Configure your settings in the GUI and start using WootRat.
 
-The WootRatGui is a minimal settings window. When it starts, WootRat becomes active.
-This window must remain active during mouse emulation.
-When you close the window the mouse emulation will be disabled and you will need to restart it to use it again. So the use case here is that you start the application and minimize it. Whenever you tweak values and press the 'Save and Restart' button, the values are stored in the settings file. However, WootRat needs to be restarted to access them, as it only reads the settings at startup. This auto-restart feature works on Windows. Its behavior on other platforms is uncertain.
+The WootRatGui start in the system tray. When it starts, WootRat becomes active.
+This tray app must remain active during mouse emulation.
+When you close the tray the mouse emulation will be disabled and you will need to restart it to use it again. Use case is to simply start the application and start mousing. Whenever you tweak values and press the 'Save and Restart' button in the settings window, the values are stored in the settings file. However, WootRat needs to be restarted to access them, as it only reads the settings at startup. This auto-restart feature works on Windows (still with bugs). Its behavior on other platforms is uncertain.
+The buttons F17 and F18 will always be your scroll buttons up and down no matter the other configuration you decide.
 
 ### For Programmers
 1. Clone the repository: 
@@ -49,6 +50,7 @@ Yes, this probably works on these platforms. However, you need to use PyInstalle
 # Prerequisites
 - A Wooting keyboard with at least WASD, arrow keys, or F13-F16 mapped using Wootility.
 - For maximum mouse emulation, configure mouse button mapping in Wootility.
+- Mapp F17 and F18 for the scroll functionality.
 - Python 3.8 or higher (for programmers).
 
 # Important Notes
