@@ -10,6 +10,7 @@ from WootRat import run_woot_rat
 
 # JSON file for settings
 SETTINGS_FILE = "settings.json"
+manual_close = False
 
 # Default settings
 default_settings = {
@@ -20,6 +21,7 @@ default_settings = {
     "mouse_active": True,
     "key_mapping": "F13-F16 Keys"
 }
+
 
 def load_settings():
     """
@@ -36,6 +38,7 @@ def load_settings():
         save_settings(default_settings)
         return default_settings
 
+
 def save_settings(settings):
     """
     Save the given settings to the JSON file.
@@ -46,6 +49,7 @@ def save_settings(settings):
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f, indent=4)
 
+
 def open_settings_window():
     """
     Open the settings window using Tkinter. Allows the user to adjust
@@ -53,6 +57,7 @@ def open_settings_window():
     and key mapping. Changes can be saved and the application restarted.
     """
     settings = load_settings()
+
 
     def save_and_restart():
         """
@@ -67,8 +72,10 @@ def open_settings_window():
         save_settings(settings)
 
         # Restart the application
-        python = sys.executable
-        os.execl(python, python, *sys.argv)
+        if not manual_close:
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
+
 
     def on_close():
         """
@@ -84,13 +91,13 @@ def open_settings_window():
 
     # Mouse sensitivity slider
     tk.Label(root, text="Mouse Sensitivity").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    sensitivity_slider = ttk.Scale(root, from_=1.0, to=100.0, orient="horizontal")
+    sensitivity_slider = ttk.Scale(root, from_=1.0, to=80.0, orient="horizontal")
     sensitivity_slider.set(settings["mouse_sensitivity"])
     sensitivity_slider.grid(row=0, column=1, padx=10, pady=5)
 
     # Scroll sensitivity slider
     tk.Label(root, text="Scroll Sensitivity").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    scroll_sensitivity_slider = ttk.Scale(root, from_=0.1, to=10.0, orient="horizontal")
+    scroll_sensitivity_slider = ttk.Scale(root, from_=0.1, to=2.0, orient="horizontal")
     scroll_sensitivity_slider.set(settings["scroll_sensitivity"])
     scroll_sensitivity_slider.grid(row=1, column=1, padx=10, pady=5)
 
@@ -134,16 +141,20 @@ def open_settings_window():
 
     root.mainloop()
 
+
 def create_tray_icon():
     """
     Create a system tray icon with options to open the settings window
     or exit the application.
     """
+
+
     def on_open_settings(icon, item):
         """
         Open the settings window from the tray menu.
         """
         open_settings_window()
+
 
     def on_exit(icon, item):
         """
@@ -170,6 +181,7 @@ def create_tray_icon():
     tray_icon = Icon("WootRat", icon_image, "WootRat", menu)
     tray_icon.run()
 
+
 def start_woot_rat_thread():
     """
     Start the WootRat functionality in a separate thread to handle
@@ -189,6 +201,7 @@ def start_woot_rat_thread():
         daemon=True,
     )
     woot_rat_thread.start()
+
 
 if __name__ == "__main__":
     """
