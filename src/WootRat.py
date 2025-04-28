@@ -10,22 +10,15 @@ if not os.path.exists(sdk_path):
 
 wooting_sdk = ctypes.CDLL(sdk_path)
 
-# Define the return type and argument types for the initialization function
-wooting_sdk.wooting_analog_initialise.restype = ctypes.c_int
-
 # Initialize the SDK
-result = wooting_sdk.wooting_analog_initialise()
-
-# Check the result of initialization
-if result < 0:
-    raise RuntimeError(f"Failed to initialize Wooting Analog SDK. Error code: {result}")
+if wooting_sdk.wooting_analog_initialise() < 0:
+    raise RuntimeError("Failed to initialize Wooting Analog SDK.")
 else:
-    print(f"Wooting Analog SDK initialized successfully. Devices found: {result}")
+    print(f"Wooting Analog SDK initialized successfully.")
 
 # Check if the SDK is initialized
-wooting_sdk.wooting_analog_is_initialised.restype = ctypes.c_bool
-is_initialized = wooting_sdk.wooting_analog_is_initialised()
-print(f"SDK is initialized: {is_initialized}")
+if not wooting_sdk.wooting_analog_is_initialised():
+    raise RuntimeError("Wooting Analog SDK is not initialized.")
 
 # Define the return type for reading analog values
 wooting_sdk.wooting_analog_read_analog.restype = ctypes.c_float
@@ -34,109 +27,68 @@ wooting_sdk.wooting_analog_read_analog.argtypes = [ctypes.c_ushort]
 mouse = Controller()
 
 # Keycodes for WASD
-KEY_W = 0x1A
-KEY_A = 0x04
-KEY_S = 0x16
-KEY_D = 0x07
+KEY_W, KEY_A, KEY_S, KEY_D = 0x1A, 0x04, 0x16, 0x07
 
 # Keycodes for Arrow Keys
-KEY_UP    = 0x52    
-KEY_LEFT  = 0x50  
-KEY_DOWN  = 0x51  
-KEY_RIGHT = 0x4F 
+KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = 0x52, 0x51, 0x50, 0x4F
 
 # Keycodes for F13-F16
-KEY_F13 = 0x68
-KEY_F14 = 0x69
-KEY_F15 = 0x6A
-KEY_F16 = 0x6B
+KEY_F13, KEY_F14, KEY_F15, KEY_F16 = 0x68, 0x69, 0x6A, 0x6B
 
 # Additional F keys
-KEY_F17 = 0x6C
-KEY_F18 = 0x6D
+KEY_F17, KEY_F18 = 0x6C, 0x6D
 
-def process_input(raw_value=None, deadzone=None, curve_factor=None):
 
+def process_input(raw_value, deadzone, curve_factor):
+    """
+    Process raw analog input with deadzone and curve factor.
+    """
     if raw_value < deadzone:
         return 0.0
-    
     adj_value = (raw_value - deadzone) / (1.0 - deadzone)
-    curved = pow(adj_value, curve_factor)
+    return pow(adj_value, curve_factor)
 
-    return curved
 
-def run_woot_rat(sensitivity_m=None, sensitivity_s=None, deadzone=None, curve_factor=None, mouse_active=True, key_mapping=None):
+def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, key_mapping="F13-F16 Keys", y_sensitivity_adjustment=0.0):
+    """
+    Main function to handle mouse movement and scrolling based on Wooting keyboard input.
+    """
+    # Map key bindings based on key_mapping
+    key_bindings = {
+        "Arrow Keys": (KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_F17, KEY_F18),
+        "WASD Keys": (KEY_W, KEY_S, KEY_A, KEY_D, KEY_F17, KEY_F18),
+        "F13-F16 Keys": (KEY_F13, KEY_F15, KEY_F14, KEY_F16, KEY_F17, KEY_F18),
+    }
+    current_up, current_down, current_left, current_right, current_scroll_up, current_scroll_down = key_bindings.get(
+        key_mapping, key_bindings["F13-F16 Keys"]
+    )
 
-    match key_mapping:
-        case "Arrow Keys":
-            current_up = KEY_UP
-            current_down = KEY_DOWN
-            current_left = KEY_LEFT
-            current_right = KEY_RIGHT
-            current_scroll_up = KEY_F17
-            current_scroll_down = KEY_F18
-        case "WASD Keys":
-            current_up = KEY_W
-            current_down = KEY_S
-            current_left = KEY_A
-            current_right = KEY_D
-            current_scroll_up = KEY_F17
-            current_scroll_down = KEY_F18
-        case "F13-F16 Keys":
-            current_up = KEY_F13
-            current_down = KEY_F15
-            current_left = KEY_F14
-            current_right = KEY_F16
-            current_scroll_up = KEY_F17
-            current_scroll_down = KEY_F18
-        case _:
-            current_up = KEY_F13
-            current_down = KEY_F15
-            current_left = KEY_F14
-            current_right = KEY_F16
-            current_scroll_up = KEY_F17
-            current_scroll_down = KEY_F18
+    while True:
+        dx = dy = scroll = 0.0
 
-    while mouse_active:
-        dx = 0.0
-        dy = 0.0
-        scroll = 0.0  # Initialize scroll to 0.0
-
-        # Read analog values for each key
+        # Read analog values for movement keys
         value_up = wooting_sdk.wooting_analog_read_analog(current_up)
-        value_left = wooting_sdk.wooting_analog_read_analog(current_left)
         value_down = wooting_sdk.wooting_analog_read_analog(current_down)
+        value_left = wooting_sdk.wooting_analog_read_analog(current_left)
         value_right = wooting_sdk.wooting_analog_read_analog(current_right)
 
-        # Read analog values for scrolling keys (if defined)
-        if current_scroll_up and current_scroll_down:
-            value_scroll_up = wooting_sdk.wooting_analog_read_analog(current_scroll_up)
-            value_scroll_down = wooting_sdk.wooting_analog_read_analog(current_scroll_down)
-        else:
-            value_scroll_up = 0.0
-            value_scroll_down = 0.0
+        # Read analog values for scrolling keys
+        value_scroll_up = wooting_sdk.wooting_analog_read_analog(current_scroll_up)
+        value_scroll_down = wooting_sdk.wooting_analog_read_analog(current_scroll_down)
 
-        # Apply deadzone and calculate movement
-        if value_up > deadzone:
-            dy -= process_input(value_up, deadzone, curve_factor) * sensitivity_m
-        if value_down > deadzone:
-            dy += process_input(value_down, deadzone, curve_factor) * sensitivity_m
-        if value_left > deadzone:
-            dx -= process_input(value_left, deadzone, curve_factor) * sensitivity_m
-        if value_right > deadzone:
-            dx += process_input(value_right, deadzone, curve_factor) * sensitivity_m
+        # Calculate movement
+        dy -= process_input(value_up, deadzone, curve_factor) * sensitivity_m * (1 - y_sensitivity_adjustment) if value_up > deadzone else 0
+        dy += process_input(value_down, deadzone, curve_factor) * sensitivity_m * (1 - y_sensitivity_adjustment) if value_down > deadzone else 0
+        dx -= process_input(value_left, deadzone, curve_factor) * sensitivity_m if value_left > deadzone else 0
+        dx += process_input(value_right, deadzone, curve_factor) * sensitivity_m if value_right > deadzone else 0
 
-        # Apply deadzone and calculate scrolling
-        if value_scroll_up > deadzone:
-            scroll += process_input(value_scroll_up, deadzone, curve_factor) * sensitivity_s
-        if value_scroll_down > deadzone:
-            scroll -= process_input(value_scroll_down, deadzone, curve_factor) * sensitivity_s
+        # Calculate scrolling
+        scroll += process_input(value_scroll_up, deadzone, curve_factor) * sensitivity_s if value_scroll_up > deadzone else 0
+        scroll -= process_input(value_scroll_down, deadzone, curve_factor) * sensitivity_s if value_scroll_down > deadzone else 0
 
-        # Move the mouse
+        # Perform mouse actions
         if dx or dy:
             mouse.move(dx, dy)
-
-        # Scroll the mouse
         if scroll:
             mouse.scroll(0, scroll)
 
