@@ -14,7 +14,7 @@ SETTINGS_FILE = "settings.json"
 # Default settings
 default_settings = {
     "mouse_sensitivity": 15.0,
-    "scroll_sensitivity": 1.0,
+    "scroll_sensitivity": 0.5,
     "deadzone": 0.1,
     "curve_factor": 2.0,
     "mouse_active": True,
@@ -39,7 +39,8 @@ def save_settings(settings):
 def open_settings_window():
     settings = load_settings()
 
-    def save_and_close():
+    def save_and_restart():
+        # Save settings and restart the application
         settings["mouse_sensitivity"] = sensitivity_slider.get()
         settings["scroll_sensitivity"] = scroll_sensitivity_slider.get()
         settings["deadzone"] = float(deadzone_entry.get())
@@ -48,11 +49,19 @@ def open_settings_window():
         settings["key_mapping"] = key_mapping_var.get()
         save_settings(settings)
 
+        # Restart the application
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
+    def on_close():
+        # Just close the window without restarting
+        root.destroy()
+
     root = tk.Tk()
     root.title("Woot Rat Settings")
+
+    # Bind the close button to the on_close function
+    root.protocol("WM_DELETE_WINDOW", on_close)
 
     # Mouse sensitivity slider
     tk.Label(root, text="Mouse Sensitivity").grid(row=0, column=0, padx=10, pady=5, sticky="w")
@@ -100,8 +109,8 @@ def open_settings_window():
     toggle_button = ttk.Checkbutton(root, variable=toggle_var, text="On/Off")
     toggle_button.grid(row=5, column=1, padx=10, pady=5)
 
-    # Save button
-    save_button = ttk.Button(root, text="Save and Restart", command=save_and_close)
+    # Save and Restart button
+    save_button = ttk.Button(root, text="Save and Restart", command=save_and_restart)
     save_button.grid(row=6, column=0, columnspan=2, pady=10)
 
     root.mainloop()
@@ -131,13 +140,13 @@ def create_tray_icon():
     tray_icon.run()
 
 def start_woot_rat_thread():
-    settings = load_settings()
+    settings      = load_settings()
     sensitivity_m = settings["mouse_sensitivity"]
     sensitivity_s = settings["scroll_sensitivity"]
-    deadzone = settings["deadzone"]
-    curve_factor = settings["curve_factor"]
-    is_active = settings["mouse_active"]
-    key_map = settings["key_mapping"]
+    deadzone      = settings["deadzone"]
+    curve_factor  = settings["curve_factor"]
+    is_active     = settings["mouse_active"]
+    key_map       = settings["key_mapping"]
 
     woot_rat_thread = threading.Thread(
         target=run_woot_rat,
