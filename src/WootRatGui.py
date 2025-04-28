@@ -1,16 +1,19 @@
 import os
 import sys
 import json
-import tkinter as tk
-from tkinter import ttk
 import threading
-from PIL import Image
-from pystray import Icon, Menu, MenuItem
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QComboBox,
+    QCheckBox, QPushButton, QLineEdit, QWidget, QMessageBox
+)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from WootRat import run_woot_rat
 
 # JSON file for settings
-SETTINGS_FILE = "settings.json"
-manual_close = False
+SETTINGS_FILE = os.path.join(os.path.expanduser("~"), "WootRat_settings.json")
+
+woot_rat_thread = None
 
 # Default settings
 default_settings = {
@@ -50,136 +53,109 @@ def save_settings(settings):
         json.dump(settings, f, indent=4)
 
 
-def open_settings_window():
+def get_resource_path(filename):
     """
-    Open the settings window using Tkinter. Allows the user to adjust
-    mouse sensitivity, scroll sensitivity, deadzone, curve factor, 
-    and key mapping. Changes can be saved and the application restarted.
+    Get the absolute path to a resource file, whether running as a script or as a PyInstaller executable.
     """
-    settings = load_settings()
+    if getattr(sys, 'frozen', False):  # Running as a PyInstaller executable
+        base_path = sys._MEIPASS
+    else:  # Running as a script
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, filename)
 
 
-    def save_and_restart():
+class SettingsWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.settings = load_settings()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("Woot Rat Settings")
+        self.setGeometry(100, 100, 400, 300)
+
+        # Set the window icon
+        icon_path = get_resource_path(os.path.join("icon", "WootRat.png"))
+        self.setWindowIcon(QIcon(icon_path))
+
+        # Main layout
+        main_layout = QVBoxLayout()
+
+        # Mouse sensitivity slider
+        mouse_sensitivity_label = QLabel("Mouse Sensitivity")
+        self.mouse_sensitivity_slider = QSlider(Qt.Horizontal)
+        self.mouse_sensitivity_slider.setMinimum(1)
+        self.mouse_sensitivity_slider.setMaximum(80)
+        self.mouse_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  # Convert float to int
+        main_layout.addWidget(mouse_sensitivity_label)
+        main_layout.addWidget(self.mouse_sensitivity_slider)
+
+        # Scroll sensitivity slider
+        scroll_sensitivity_label = QLabel("Scroll Sensitivity")
+        self.scroll_sensitivity_slider = QSlider(Qt.Horizontal)
+        self.scroll_sensitivity_slider.setMinimum(1)
+        self.scroll_sensitivity_slider.setMaximum(20)
+        self.scroll_sensitivity_slider.setValue(int(self.settings["scroll_sensitivity"] * 10))  # Explicit int conversion
+        main_layout.addWidget(scroll_sensitivity_label)
+        main_layout.addWidget(self.scroll_sensitivity_slider)
+
+        # Deadzone entry
+        deadzone_label = QLabel("Deadzone")
+        self.deadzone_entry = QLineEdit(str(self.settings["deadzone"]))
+        main_layout.addWidget(deadzone_label)
+        main_layout.addWidget(self.deadzone_entry)
+
+        # Curve factor dropdown
+        curve_factor_label = QLabel("Curve Factor")
+        self.curve_factor_dropdown = QComboBox()
+        self.curve_factor_dropdown.addItems(["1.0", "1.5", "2.0", "2.5", "3.0"])
+        self.curve_factor_dropdown.setCurrentText(str(self.settings["curve_factor"]))
+        main_layout.addWidget(curve_factor_label)
+        main_layout.addWidget(self.curve_factor_dropdown)
+
+        # Key mapping dropdown
+        key_mapping_label = QLabel("Key Mapping")
+        self.key_mapping_dropdown = QComboBox()
+        self.key_mapping_dropdown.addItems(["Arrow Keys", "WASD Keys", "F13-F16 Keys"])
+        self.key_mapping_dropdown.setCurrentText(self.settings["key_mapping"])
+        main_layout.addWidget(key_mapping_label)
+        main_layout.addWidget(self.key_mapping_dropdown)
+
+        # Mouse active toggle
+        self.mouse_active_checkbox = QCheckBox("Enable Mouse")
+        self.mouse_active_checkbox.setChecked(self.settings["mouse_active"])
+        main_layout.addWidget(self.mouse_active_checkbox)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        save_button = QPushButton("Save Settings")
+        save_button.clicked.connect(self.save_settings)
+        button_layout.addWidget(save_button)
+
+        main_layout.addLayout(button_layout)
+
+        # Set central widget
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
+
+    def save_settings(self):
         """
-        Save the settings and restart the application.
+        Save the settings to the JSON file.
         """
-        settings["mouse_sensitivity"] = sensitivity_slider.get()
-        settings["scroll_sensitivity"] = scroll_sensitivity_slider.get()
-        settings["deadzone"] = float(deadzone_entry.get())
-        settings["curve_factor"] = float(curve_factor_var.get())
-        settings["mouse_active"] = bool(toggle_var.get())
-        settings["key_mapping"] = key_mapping_var.get()
-        save_settings(settings)
+        try:
+            # Save the updated settings
+            self.settings["mouse_sensitivity"] = self.mouse_sensitivity_slider.value()
+            self.settings["scroll_sensitivity"] = self.scroll_sensitivity_slider.value() / 10.0
+            self.settings["deadzone"] = float(self.deadzone_entry.text())
+            self.settings["curve_factor"] = float(self.curve_factor_dropdown.currentText())
+            self.settings["mouse_active"] = self.mouse_active_checkbox.isChecked()
+            self.settings["key_mapping"] = self.key_mapping_dropdown.currentText()
+            save_settings(self.settings)
 
-        # Restart the application
-        if not manual_close:
-            python = sys.executable
-            os.execl(python, python, *sys.argv)
-
-
-    def on_close():
-        """
-        Close the settings window without restarting the application.
-        """
-        root.destroy()
-
-    root = tk.Tk()
-    root.title("Woot Rat Settings")
-
-    # Bind the close button to the on_close function
-    root.protocol("WM_DELETE_WINDOW", on_close)
-
-    # Mouse sensitivity slider
-    tk.Label(root, text="Mouse Sensitivity").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    sensitivity_slider = ttk.Scale(root, from_=1.0, to=80.0, orient="horizontal")
-    sensitivity_slider.set(settings["mouse_sensitivity"])
-    sensitivity_slider.grid(row=0, column=1, padx=10, pady=5)
-
-    # Scroll sensitivity slider
-    tk.Label(root, text="Scroll Sensitivity").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    scroll_sensitivity_slider = ttk.Scale(root, from_=0.1, to=2.0, orient="horizontal")
-    scroll_sensitivity_slider.set(settings["scroll_sensitivity"])
-    scroll_sensitivity_slider.grid(row=1, column=1, padx=10, pady=5)
-
-    # Deadzone entry
-    tk.Label(root, text="Deadzone").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-    deadzone_entry = ttk.Entry(root)
-    deadzone_entry.insert(0, str(settings["deadzone"]))
-    deadzone_entry.grid(row=2, column=1, padx=10, pady=5)
-
-    # Curve factor dropdown
-    tk.Label(root, text="Curve Factor").grid(row=3, column=0, padx=10, pady=5, sticky="w")
-    curve_factor_var = tk.StringVar(value=str(settings["curve_factor"]))
-    curve_factor_dropdown = ttk.Combobox(
-        root,
-        textvariable=curve_factor_var,
-        values=["1.0", "1.5", "2.0", "2.5", "3.0"],
-        state="readonly",
-    )
-    curve_factor_dropdown.grid(row=3, column=1, padx=10, pady=5)
-
-    # Key mapping dropdown
-    tk.Label(root, text="Key Mapping").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-    key_mapping_var = tk.StringVar(value=settings.get("key_mapping", "Arrow Keys"))
-    key_mapping_dropdown = ttk.Combobox(
-        root,
-        textvariable=key_mapping_var,
-        values=["Arrow Keys", "WASD Keys", "F13-F16 Keys"],
-        state="readonly",
-    )
-    key_mapping_dropdown.grid(row=4, column=1, padx=10, pady=5)
-
-    # Mouse active toggle
-    tk.Label(root, text="Enable").grid(row=5, column=0, padx=10, pady=5, sticky="w")
-    toggle_var = tk.IntVar(value=int(settings["mouse_active"]))
-    toggle_button = ttk.Checkbutton(root, variable=toggle_var, text="On/Off")
-    toggle_button.grid(row=5, column=1, padx=10, pady=5)
-
-    # Save and Restart button
-    save_button = ttk.Button(root, text="Save and Restart", command=save_and_restart)
-    save_button.grid(row=6, column=0, columnspan=2, pady=10)
-
-    root.mainloop()
-
-
-def create_tray_icon():
-    """
-    Create a system tray icon with options to open the settings window
-    or exit the application.
-    """
-
-
-    def on_open_settings(icon, item):
-        """
-        Open the settings window from the tray menu.
-        """
-        open_settings_window()
-
-
-    def on_exit(icon, item):
-        """
-        Exit the application from the tray menu.
-        """
-        icon.stop()
-        sys.exit()
-
-    # Load the icon image from the icon folder
-    icon_path = os.path.join(os.path.dirname(__file__), "icon", "WootRat.png")
-    icon_image = Image.open(icon_path).convert("RGBA")
-
-    # Add a white background under the transparent icon
-    white_background = Image.new("RGBA", icon_image.size, (255, 255, 255, 255))
-    icon_image = Image.alpha_composite(white_background, icon_image)  
-
-    # Create the tray menu
-    menu = Menu(
-        MenuItem("Open Settings", on_open_settings),
-        MenuItem("Exit", on_exit)
-    )
-
-    # Create and run the tray icon
-    tray_icon = Icon("WootRat", icon_image, "WootRat", menu)
-    tray_icon.run()
+            QMessageBox.information(self, "Success", "Settings saved successfully! Please restart application for them to take effect.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
 
 
 def start_woot_rat_thread():
@@ -187,13 +163,13 @@ def start_woot_rat_thread():
     Start the WootRat functionality in a separate thread to handle
     mouse movement and scrolling based on Wooting keyboard input.
     """
-    settings      = load_settings()
+    settings = load_settings()
     sensitivity_m = settings["mouse_sensitivity"]
     sensitivity_s = settings["scroll_sensitivity"]
-    deadzone      = settings["deadzone"]
-    curve_factor  = settings["curve_factor"]
-    is_active     = settings["mouse_active"]
-    key_map       = settings["key_mapping"]
+    deadzone = settings["deadzone"]
+    curve_factor = settings["curve_factor"]
+    is_active = settings["mouse_active"]
+    key_map = settings["key_mapping"]
 
     woot_rat_thread = threading.Thread(
         target=run_woot_rat,
@@ -203,10 +179,29 @@ def start_woot_rat_thread():
     woot_rat_thread.start()
 
 
+def cleanup_threads():
+    """
+    Ensure all threads are properly stopped or joined before exiting.
+    """
+    global woot_rat_thread
+    if woot_rat_thread and woot_rat_thread.is_alive():
+        try:
+            woot_rat_thread.join(timeout=5)  # Wait for the thread to finish
+        except Exception as e:
+            print(f"Failed to join WootRat thread: {e}")
+
+
 if __name__ == "__main__":
     """
     Entry point of the application. Starts the WootRat thread and
-    creates the system tray icon.
+    opens the settings window.
     """
-    start_woot_rat_thread()
-    create_tray_icon()
+    try:
+        start_woot_rat_thread()
+
+        app = QApplication(sys.argv)
+        settings_window = SettingsWindow()
+        settings_window.show()
+        sys.exit(app.exec_())
+    finally:
+        cleanup_threads()
