@@ -70,7 +70,7 @@ def get_resource_path(filename):
     """
     Get the absolute path to a resource file, whether running as a script or as a PyInstaller executable.
     """
-    if getattr(sys, 'frozen', False):  # Running as a PyInstaller executable
+    if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
     else:  # Running as a script
         base_path = os.path.abspath(os.path.dirname(__file__))
@@ -99,7 +99,7 @@ class SettingsWindow(QMainWindow):
         self.mouse_sensitivity_slider = QSlider(Qt.Horizontal)
         self.mouse_sensitivity_slider.setMinimum(1)
         self.mouse_sensitivity_slider.setMaximum(80)
-        self.mouse_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  # Convert float to int
+        self.mouse_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  
         main_layout.addWidget(mouse_sensitivity_label)
         main_layout.addWidget(self.mouse_sensitivity_slider)
 
@@ -108,7 +108,7 @@ class SettingsWindow(QMainWindow):
         self.y_sensitivity_slider = QSlider(Qt.Horizontal)
         self.y_sensitivity_slider.setMinimum(0)
         self.y_sensitivity_slider.setMaximum(50)
-        self.y_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  # Default to 0%
+        self.y_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  
         main_layout.addWidget(y_sensitivity_label)
         main_layout.addWidget(self.y_sensitivity_slider)
 
@@ -117,7 +117,7 @@ class SettingsWindow(QMainWindow):
         self.scroll_sensitivity_slider = QSlider(Qt.Horizontal)
         self.scroll_sensitivity_slider.setMinimum(1)
         self.scroll_sensitivity_slider.setMaximum(20)
-        self.scroll_sensitivity_slider.setValue(int(self.settings["scroll_sensitivity"] * 10))  # Explicit int conversion
+        self.scroll_sensitivity_slider.setValue(int(self.settings["scroll_sensitivity"] * 10))  
         main_layout.addWidget(scroll_sensitivity_label)
         main_layout.addWidget(self.scroll_sensitivity_slider)
 
@@ -203,7 +203,7 @@ def cleanup_threads():
     global woot_rat_thread
     if woot_rat_thread and woot_rat_thread.is_alive():
         try:
-            woot_rat_thread.join(timeout=5)  # Wait for the thread to finish
+            woot_rat_thread.join(timeout=5)
         except Exception as e:
             print(f"Failed to join WootRat thread: {e}")
 
