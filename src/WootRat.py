@@ -49,7 +49,7 @@ def process_input(raw_value, deadzone, curve_factor):
     return pow(adj_value, curve_factor)
 
 
-def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, mouse_active=True, key_mapping="F13-F16 Keys"):
+def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, key_mapping="F13-F16 Keys", y_sensitivity_adjustment=0.0):
     """
     Main function to handle mouse movement and scrolling based on Wooting keyboard input.
     """
@@ -63,7 +63,7 @@ def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_fact
         key_mapping, key_bindings["F13-F16 Keys"]
     )
 
-    while mouse_active:
+    while True:
         dx = dy = scroll = 0.0
 
         # Read analog values for movement keys
@@ -77,8 +77,8 @@ def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_fact
         value_scroll_down = wooting_sdk.wooting_analog_read_analog(current_scroll_down)
 
         # Calculate movement
-        dy -= process_input(value_up, deadzone, curve_factor) * sensitivity_m if value_up > deadzone else 0
-        dy += process_input(value_down, deadzone, curve_factor) * sensitivity_m if value_down > deadzone else 0
+        dy -= process_input(value_up, deadzone, curve_factor) * sensitivity_m * (1 - y_sensitivity_adjustment) if value_up > deadzone else 0
+        dy += process_input(value_down, deadzone, curve_factor) * sensitivity_m * (1 - y_sensitivity_adjustment) if value_down > deadzone else 0
         dx -= process_input(value_left, deadzone, curve_factor) * sensitivity_m if value_left > deadzone else 0
         dx += process_input(value_right, deadzone, curve_factor) * sensitivity_m if value_right > deadzone else 0
 

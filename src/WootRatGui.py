@@ -11,14 +11,15 @@ from PyQt5.QtGui import QIcon
 from WootRat import run_woot_rat
 
 # JSON file for settings
-SETTINGS_FILE = os.path.join(os.path.expanduser("~"), "WootRat_settings.json")
+SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "WootRat_settings.json")
 
 woot_rat_thread = None
 
 # Default settings
 default_settings = {
-    "mouse_sensitivity": 15.0,
-    "scroll_sensitivity": 0.5,
+    "mouse_sensitivity": 25,
+    "y_sensitivity_adjustment": 0.5,
+    "scroll_sensitivity": 0.3,
     "deadzone": 0.1,
     "curve_factor": 2.0,
     "key_mapping": "F13-F16 Keys"
@@ -28,17 +29,26 @@ default_settings = {
 def load_settings():
     """
     Load settings from the JSON file. If the file does not exist, 
-    create it with default settings.
+    create it with default settings. Ensure all default keys are present.
 
     Returns:
         dict: The settings loaded from the JSON file.
     """
     try:
         with open(SETTINGS_FILE, "r") as f:
-            return json.load(f)
+            settings = json.load(f)
     except FileNotFoundError:
-        save_settings(default_settings)
-        return default_settings
+        # If the file does not exist, create it with default settings
+        settings = default_settings.copy()
+
+    # Ensure all default keys are present
+    for key, value in default_settings.items():
+        if key not in settings:
+            settings[key] = value
+
+    # Save updated settings if any defaults were added
+    save_settings(settings)
+    return settings
 
 
 def save_settings(settings):
@@ -48,8 +58,12 @@ def save_settings(settings):
     Args:
         settings (dict): The settings to save.
     """
-    with open(SETTINGS_FILE, "w") as f:
-        json.dump(settings, f, indent=4)
+    try:
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(settings, f, indent=4)
+        print(f"Settings saved to {SETTINGS_FILE}")
+    except Exception as e:
+        print(f"Failed to save settings: {e}")
 
 
 def get_resource_path(filename):
@@ -88,6 +102,15 @@ class SettingsWindow(QMainWindow):
         self.mouse_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  # Convert float to int
         main_layout.addWidget(mouse_sensitivity_label)
         main_layout.addWidget(self.mouse_sensitivity_slider)
+
+        # Y-axis sensitivity adjustment slider
+        y_sensitivity_label = QLabel("Y-Axis Dampening (%)")
+        self.y_sensitivity_slider = QSlider(Qt.Horizontal)
+        self.y_sensitivity_slider.setMinimum(0)
+        self.y_sensitivity_slider.setMaximum(50)
+        self.y_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))  # Default to 0%
+        main_layout.addWidget(y_sensitivity_label)
+        main_layout.addWidget(self.y_sensitivity_slider)
 
         # Scroll sensitivity slider
         scroll_sensitivity_label = QLabel("Scroll Sensitivity")
@@ -140,6 +163,7 @@ class SettingsWindow(QMainWindow):
         try:
             # Save the updated settings
             self.settings["mouse_sensitivity"] = self.mouse_sensitivity_slider.value()
+            self.settings["y_sensitivity_adjustment"] = self.y_sensitivity_slider.value() / 100.0
             self.settings["scroll_sensitivity"] = self.scroll_sensitivity_slider.value() / 10.0
             self.settings["deadzone"] = float(self.deadzone_entry.text())
             self.settings["curve_factor"] = float(self.curve_factor_dropdown.currentText())
@@ -156,16 +180,17 @@ def start_woot_rat_thread():
     Start the WootRat functionality in a separate thread to handle
     mouse movement and scrolling based on Wooting keyboard input.
     """
-    settings = load_settings()
-    sensitivity_m = settings["mouse_sensitivity"]
-    sensitivity_s = settings["scroll_sensitivity"]
-    deadzone = settings["deadzone"]
-    curve_factor = settings["curve_factor"]
-    key_map = settings["key_mapping"]
+    settings       = load_settings()
+    sensitivity_m  = settings["mouse_sensitivity"]
+    sensitivity_mY = settings["y_sensitivity_adjustment"]
+    sensitivity_s  = settings["scroll_sensitivity"]
+    deadzone       = settings["deadzone"]
+    curve_factor   = settings["curve_factor"]
+    key_map        = settings["key_mapping"]
 
     woot_rat_thread = threading.Thread(
         target=run_woot_rat,
-        args=(sensitivity_m, sensitivity_s, deadzone, curve_factor, key_map),
+        args=(sensitivity_m, sensitivity_s, deadzone, curve_factor, key_map, sensitivity_mY),
         daemon=True,
     )
     woot_rat_thread.start()
