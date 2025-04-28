@@ -4,7 +4,7 @@ import json
 import tkinter as tk
 from tkinter import ttk
 import threading
-from PIL import Image, ImageDraw  # Required for pystray icon
+from PIL import Image
 from pystray import Icon, Menu, MenuItem
 from WootRat import run_woot_rat
 
@@ -21,8 +21,14 @@ default_settings = {
     "key_mapping": "F13-F16 Keys"
 }
 
-# Load settings from JSON file
 def load_settings():
+    """
+    Load settings from the JSON file. If the file does not exist, 
+    create it with default settings.
+
+    Returns:
+        dict: The settings loaded from the JSON file.
+    """
     try:
         with open(SETTINGS_FILE, "r") as f:
             return json.load(f)
@@ -30,17 +36,28 @@ def load_settings():
         save_settings(default_settings)
         return default_settings
 
-# Save settings to JSON file
 def save_settings(settings):
+    """
+    Save the given settings to the JSON file.
+
+    Args:
+        settings (dict): The settings to save.
+    """
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f, indent=4)
 
-# Tkinter GUI for settings
 def open_settings_window():
+    """
+    Open the settings window using Tkinter. Allows the user to adjust
+    mouse sensitivity, scroll sensitivity, deadzone, curve factor, 
+    and key mapping. Changes can be saved and the application restarted.
+    """
     settings = load_settings()
 
     def save_and_restart():
-        # Save settings and restart the application
+        """
+        Save the settings and restart the application.
+        """
         settings["mouse_sensitivity"] = sensitivity_slider.get()
         settings["scroll_sensitivity"] = scroll_sensitivity_slider.get()
         settings["deadzone"] = float(deadzone_entry.get())
@@ -54,7 +71,9 @@ def open_settings_window():
         os.execl(python, python, *sys.argv)
 
     def on_close():
-        # Just close the window without restarting
+        """
+        Close the settings window without restarting the application.
+        """
         root.destroy()
 
     root = tk.Tk()
@@ -115,19 +134,31 @@ def open_settings_window():
 
     root.mainloop()
 
-# System tray functionality
 def create_tray_icon():
+    """
+    Create a system tray icon with options to open the settings window
+    or exit the application.
+    """
     def on_open_settings(icon, item):
+        """
+        Open the settings window from the tray menu.
+        """
         open_settings_window()
 
     def on_exit(icon, item):
+        """
+        Exit the application from the tray menu.
+        """
         icon.stop()
         sys.exit()
 
-    # Create an icon image
-    icon_image = Image.new("RGB", (64, 64), (255, 255, 255))
-    draw = ImageDraw.Draw(icon_image)
-    draw.rectangle((16, 16, 48, 48), fill="black")
+    # Load the icon image from the icon folder
+    icon_path = os.path.join(os.path.dirname(__file__), "icon", "WootRat.png")
+    icon_image = Image.open(icon_path).convert("RGBA")
+
+    # Add a white background under the transparent icon
+    white_background = Image.new("RGBA", icon_image.size, (255, 255, 255, 255))
+    icon_image = Image.alpha_composite(white_background, icon_image)  
 
     # Create the tray menu
     menu = Menu(
@@ -140,6 +171,10 @@ def create_tray_icon():
     tray_icon.run()
 
 def start_woot_rat_thread():
+    """
+    Start the WootRat functionality in a separate thread to handle
+    mouse movement and scrolling based on Wooting keyboard input.
+    """
     settings      = load_settings()
     sensitivity_m = settings["mouse_sensitivity"]
     sensitivity_s = settings["scroll_sensitivity"]
@@ -156,5 +191,9 @@ def start_woot_rat_thread():
     woot_rat_thread.start()
 
 if __name__ == "__main__":
+    """
+    Entry point of the application. Starts the WootRat thread and
+    creates the system tray icon.
+    """
     start_woot_rat_thread()
     create_tray_icon()
