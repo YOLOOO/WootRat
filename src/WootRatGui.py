@@ -4,7 +4,7 @@ import json
 import threading
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QComboBox,
-    QCheckBox, QPushButton, QLineEdit, QWidget, QMessageBox
+    QPushButton, QLineEdit, QWidget, QMessageBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
@@ -21,7 +21,6 @@ default_settings = {
     "scroll_sensitivity": 0.5,
     "deadzone": 0.1,
     "curve_factor": 2.0,
-    "mouse_active": True,
     "key_mapping": "F13-F16 Keys"
 }
 
@@ -121,11 +120,6 @@ class SettingsWindow(QMainWindow):
         main_layout.addWidget(key_mapping_label)
         main_layout.addWidget(self.key_mapping_dropdown)
 
-        # Mouse active toggle
-        self.mouse_active_checkbox = QCheckBox("Enable Mouse")
-        self.mouse_active_checkbox.setChecked(self.settings["mouse_active"])
-        main_layout.addWidget(self.mouse_active_checkbox)
-
         # Buttons
         button_layout = QHBoxLayout()
         save_button = QPushButton("Save Settings")
@@ -149,7 +143,6 @@ class SettingsWindow(QMainWindow):
             self.settings["scroll_sensitivity"] = self.scroll_sensitivity_slider.value() / 10.0
             self.settings["deadzone"] = float(self.deadzone_entry.text())
             self.settings["curve_factor"] = float(self.curve_factor_dropdown.currentText())
-            self.settings["mouse_active"] = self.mouse_active_checkbox.isChecked()
             self.settings["key_mapping"] = self.key_mapping_dropdown.currentText()
             save_settings(self.settings)
 
@@ -168,12 +161,11 @@ def start_woot_rat_thread():
     sensitivity_s = settings["scroll_sensitivity"]
     deadzone = settings["deadzone"]
     curve_factor = settings["curve_factor"]
-    is_active = settings["mouse_active"]
     key_map = settings["key_mapping"]
 
     woot_rat_thread = threading.Thread(
         target=run_woot_rat,
-        args=(sensitivity_m, sensitivity_s, deadzone, curve_factor, is_active, key_map),
+        args=(sensitivity_m, sensitivity_s, deadzone, curve_factor, key_map),
         daemon=True,
     )
     woot_rat_thread.start()
@@ -198,8 +190,13 @@ if __name__ == "__main__":
     """
     try:
         start_woot_rat_thread()
-
         app = QApplication(sys.argv)
+
+        # Load and apply the QSS stylesheet
+        qss_path = os.path.join(os.path.dirname(__file__), "style.qss")
+        with open(qss_path, "r") as f:
+            app.setStyleSheet(f.read())
+
         settings_window = SettingsWindow()
         settings_window.show()
         sys.exit(app.exec_())
