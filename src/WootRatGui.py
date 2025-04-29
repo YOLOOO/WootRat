@@ -17,11 +17,11 @@ woot_rat_thread = None
 
 # Default settings
 default_settings = {
-    "mouse_sensitivity": 25,
-    "y_sensitivity_adjustment": 0.5,
+    "mouse_sensitivity": 23,
+    "y_sensitivity_adjustment": 0.35,
     "scroll_sensitivity": 0.3,
-    "deadzone": 0.1,
-    "curve_factor": 2.0,
+    "deadzone": 0.08,
+    "curve_factor": 9.5,
     "key_mapping": "F13-F16 Keys"
 }
 
@@ -130,7 +130,10 @@ class SettingsWindow(QMainWindow):
         # Curve factor dropdown
         curve_factor_label = QLabel("Curve Factor")
         self.curve_factor_dropdown = QComboBox()
-        self.curve_factor_dropdown.addItems(["1.0", "1.5", "2.0", "2.5", "3.0"])
+        self.curve_factor_dropdown.addItems(["1.0", "1.5", "2.0", "2.5", "3.0",
+                                              "3.5", "4.0", "4.5", "5.0", "5.5", 
+                                              "6.0", "6.5", "7.0", "7.5", "8.0",
+                                              "8.5", "9.0", "9.5", "10.0"])
         self.curve_factor_dropdown.setCurrentText(str(self.settings["curve_factor"]))
         main_layout.addWidget(curve_factor_label)
         main_layout.addWidget(self.curve_factor_dropdown)
