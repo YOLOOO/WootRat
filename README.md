@@ -15,9 +15,11 @@ Why? Because I just hate mice.... #Python
 
 ## How to Use
 ### For Non-Programmers
-1. Download the `WootRatGui.exe` file from the `dist/` folder.
-2. Double-click the `.exe` file to launch the application.
-3. Configure your settings in the GUI and start using WootRat.
+1. Download the latest release of `WootRatGui.exe` from the [Releases](https://github.com/YOLOOO/WootRat/releases) page on GitHub.
+2. Unzip folder.
+3. Double-click the `.exe` file to launch the application.
+4. Configure your settings in the GUI and start using WootRat.
+5. When prompted after settings tweak, close the gui and re-launch application.
 
 The WootRatGui is a settings window. When it starts, WootRat becomes active.
 This window must remain active during mouse emulation.
