@@ -84,3 +84,8 @@ That's it! Have fun and make it your own.
 
 # Important Notes
 This project is a proof of concept (POC) and is provided as-is. It is not actively maintained and is intended for use until Wooting adds native emulation support to Wootility and their firmware.
+
+### Why Does Windows Show a Warning When Running WootRatGui.exe?
+When you download and run WootRatGui.exe, you may see a warning from Windows Defender SmartScreen. This happens because the application is not signed with a code-signing certificate. 
+Rest assured, WootRat is safe to use. You can bypass the warning by clicking **More Info** and then **Run Anyway**.
+I am not working on obtaining a code-signing certificate to remove this warning it will be present for the time being.
