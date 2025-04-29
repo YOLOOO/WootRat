@@ -89,3 +89,7 @@ This project is a proof of concept (POC) and is provided as-is. It is not active
 When you download and run WootRatGui.exe, you may see a warning from Windows Defender SmartScreen. This happens because the application is not signed with a code-signing certificate. 
 Rest assured, WootRat is safe to use. You can bypass the warning by clicking **More Info** and then **Run Anyway**.
 I am not working on obtaining a code-signing certificate to remove this warning it will be present for the time being.
+
+## When using Wootility
+Since Wootility also wants to read the analog values from your connected keyboard it is required that you close WootRat before using Wootility otherwise the keyboard will not be able to connect.
+If this happens close WootRat and connect again to Wootility. 
