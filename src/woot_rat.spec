@@ -2,18 +2,21 @@
 
 
 a = Analysis(
-    ['WootRatGui.py'],  # Main entry point
-    pathex=['src'],  # Add the source directory to the path
+    ['main.py'],
+    pathex=['src'],
     binaries=[
         ('resources/wooting_analog_sdk.dll', 'resources')
     ],
     datas=[
-        ('resources/WootRat.png', 'icon'),
-        ('resources/WootRat.ico', 'ico'),
-        ('utils/style.qss', '.'),
-        ('utils/settings.json', '.'),
+        ('resources/woot_rat.png', 'resources'),
+        ('resources/woot_rat.ico', 'resources'),
+        ('utils/style.qss', 'utils'),
+        ('utils/settings.json', 'utils'),
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        'pynput.mouse',
+        'ctypes',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -42,5 +45,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['resources/WootRat.ico']
+    icon=['resources/woot_rat.ico']
 )

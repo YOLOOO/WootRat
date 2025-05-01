@@ -19,7 +19,7 @@ class SettingsWindow(QMainWindow):
         self.setWindowTitle("Woot Rat Settings")
         self.setGeometry(100, 100, 400, 300)
 
-        icon_path = get_resource_path("resources/icon/WootRat.png")
+        icon_path = get_resource_path("resources/woot_rat.png")
         self.setWindowIcon(QIcon(icon_path))
 
         main_layout = QVBoxLayout()
