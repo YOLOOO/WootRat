@@ -76,7 +76,11 @@ class SettingsWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def save_settings(self):
+        """
+        Save the current settings and restart the WootRat thread.
+        """
         try:
+            # Save the updated settings
             self.settings["mouse_sensitivity"] = self.mouse_sensitivity_slider.value()
             self.settings["y_sensitivity_adjustment"] = self.y_sensitivity_slider.value() / 100.0
             self.settings["scroll_sensitivity"] = self.scroll_sensitivity_slider.value() / 10.0
@@ -84,6 +88,11 @@ class SettingsWindow(QMainWindow):
             self.settings["curve_factor"] = float(self.curve_factor_dropdown.currentText())
             self.settings["key_mapping"] = self.key_mapping_dropdown.currentText()
             save_settings(self.settings)
-            QMessageBox.information(self, "Success", "Settings saved successfully! Please restart application for them to take effect.")
+
+            # Restart the WootRat thread
+            from main import restart_woot_rat_thread  # Import the function
+            restart_woot_rat_thread()
+
+            QMessageBox.information(self, "Success", "Settings updated successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
