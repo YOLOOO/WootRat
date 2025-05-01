@@ -1,11 +1,13 @@
 import ctypes
 import os
+from utils.paths import get_sdk_path
 from pynput.mouse import Controller
 import time
 
 # Load the Wooting Analog SDK from the current directory
-sdk_path = os.path.join(os.path.dirname(__file__), "wooting_analog_sdk.dll")
+sdk_path = get_sdk_path()
 if not os.path.exists(sdk_path):
+    print(sdk_path)
     raise FileNotFoundError(f"SDK not found at {sdk_path}")
 
 wooting_sdk = ctypes.CDLL(sdk_path)
@@ -49,7 +51,7 @@ def process_input(raw_value, deadzone, curve_factor):
     return pow(adj_value, curve_factor)
 
 
-def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, key_mapping="F13-F16 Keys", y_sensitivity_adjustment=0.0):
+def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, key_mapping="F13-F16 Keys", y_sensitivity_adjustment=0.0, stop_event=False):
     """
     Main function to handle mouse movement and scrolling based on Wooting keyboard input.
     """
@@ -63,7 +65,7 @@ def run_woot_rat(sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_fact
         key_mapping, key_bindings["F13-F16 Keys"]
     )
 
-    while True:
+    while not stop_event.is_set():
         dx = dy = scroll_y = scroll_x = 0.0
 
         # Read analog values for movement keys
