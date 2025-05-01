@@ -19,15 +19,14 @@ Why? Because I just hate mice.... #Python
 2. Unzip folder.
 3. Double-click the `.exe` file to launch the application.
 4. Configure your settings in the GUI and start using WootRat.
-5. When prompted after settings tweak, close the gui and re-launch application.
 
 The WootRatGui is a settings window. When it starts, WootRat becomes active.
 This window must remain active during mouse emulation.
 When you close the window the mouse emulation will be disabled and you will need to restart it to use it again.
 
-The use-case is to simply start the application window and start mousing. Whenever you tweak values and press the 'Save Settings' button in the settings window, the values are stored in the settings file. However, WootRat needs to be restarted to access them, as it only reads these settings at startup. You will need to restart the application for the changes to take effect.
+The use-case is to simply start the application window and start mousing. Whenever you tweak values and press the 'Save Settings' button in the settings window, the values are stored in the settings file. 
 
-The buttons F17 and F18 will always be your scroll buttons (up and down), regardless of the other configuration you choose.
+The buttons F17 and F18 will for now always be your scroll buttons (up and down), regardless of the other configuration you choose.
 
 ### For Programmers
 1. Clone the repository: 
@@ -44,7 +43,7 @@ pip install -r requirements.txt
 python src/WootRatGui.py
 ```
 ### Mac or Linux?
-Yes, this probably works on these platforms. But if you are on these platforms you have to follow the guide below.
+Yes, this probably works on these platforms. But if you are on these platforms you have to follow the guide below. Work is currently ongoing making sure it will work.
 
 ## Build Executable from Source
 1. Install pyinstaller:
@@ -55,26 +54,32 @@ pip install pyinstaller
 ```bash
 cd WootRat/src
 ```
-3. Initial build command:
-```bash
-pyinstaller --onefile --noconsole --add-binary "wooting_analog_sdk.dll;." --add-data "WootRat.png;icon" --add-data "WootRat.ico;ico" --add-data "style.qss;." --add-data "settings.json;." --icon "WootRat.ico" WootRatGui.py
-```
-
-This will build the executable in the '/dist' directory now created in the '/src' directory. It will also create the '.spec' file which make rebuilding a breeze. When the build is done, you are free to rename the '/dist' folder to whatever makes sense and place it wherever you like. The application will run inside this folder only.
-
-4. Rebuild from source using '.spec' file
+3. Build command:
 ```bash
 pyinstaller WootRatGui.spec
 ```
 
+When the build is done, you are free to rename the '/dist' folder to whatever makes sense and place it wherever you like. The application will run inside this folder only.
+
 That's it! Have fun and make it your own.
 
 ### Folder Structure
-- `src/`: Contains the source code and Wooting SDK DLL file.
-- `dist/`: Contains the precompiled executable for non-programmers.
-- `settings.json`: Default settings file.
-- `requirements.txt`: Python dependencies.
-- `LICENSE`: MIT License.
+src/
+├── gui/
+│   └── woot_rat_gui.py
+├── logic/
+│   └── woot_rat_engine.py
+├── resources/
+│   ├── woot_rat.ico
+│   ├── woot_rat.png
+│   └── wooting_analog_sdk.dll
+├── utils/
+│   ├── paths.py
+│   ├── settings.py
+│   ├── style.qss
+│   └── settings.json
+└── main.py
+└── woot_rat.spec
 
 # Prerequisites
 - A Wooting keyboard with at least WASD, arrow keys, or F13-F16 mapped using Wootility.
