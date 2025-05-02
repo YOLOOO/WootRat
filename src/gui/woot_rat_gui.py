@@ -10,7 +10,33 @@ from PyQt5.QtGui import QIcon
 from utils.settings import load_settings, save_settings
 from utils.paths import get_resource_path
 from utils.startup_platform import add_to_startup, remove_from_startup
+from utils.thread_manager import restart_woot_rat_thread
 
+ALL_KEYS = [
+    # Alphanumeric keys
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+
+    # Function keys
+    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10",
+    "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20",
+
+    # Arrow keys
+    "Arrow Up", "Arrow Down", "Arrow Left", "Arrow Right",
+
+    # Modifier keys
+    "Shift", "Ctrl", "Alt", "Caps Lock", "Tab", "Esc",
+
+    # Punctuation and symbols
+    "`", "-", "=", "[", "]", "\\", ";", "'", ",", ".", "/",
+
+    # Space and Enter
+    "Space", "Enter", "Backspace", "Delete", "Insert",
+
+    # Other special keys
+    "Home", "End", "Page Up", "Page Down", "Print Screen", "Pause"
+]
 
 class SettingsWindow(QMainWindow):
     def __init__(self):
@@ -20,7 +46,7 @@ class SettingsWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("Woot Rat Settings")
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 400, 600)
 
         icon_path = get_resource_path("resources/woot_rat.png")
         self.setWindowIcon(QIcon(icon_path))
@@ -60,12 +86,21 @@ class SettingsWindow(QMainWindow):
         main_layout.addWidget(curve_factor_label)
         main_layout.addWidget(self.curve_factor_dropdown)
 
-        key_mapping_label = QLabel("Key Mapping")
-        self.key_mapping_dropdown = QComboBox()
-        self.key_mapping_dropdown.addItems(["Arrow Keys", "WASD Keys", "F13-F16 Keys"])
-        self.key_mapping_dropdown.setCurrentText(self.settings["key_mapping"])
-        main_layout.addWidget(key_mapping_label)
-        main_layout.addWidget(self.key_mapping_dropdown)
+        # Key Mapping Dropdowns
+        self.key_mapping_dropdowns = {}
+        key_mapping_labels = [
+            "Mouse Up", "Mouse Down", "Mouse Left", "Mouse Right",
+            "Scroll Up", "Scroll Down", "Scroll Right", "Scroll Left"
+        ]
+
+        for label in key_mapping_labels:
+            dropdown_label = QLabel(label)
+            dropdown = QComboBox()
+            dropdown.addItems(ALL_KEYS)
+            dropdown.setCurrentText(self.settings.get(f"key_{label.lower().replace(' ', '_')}", "F13"))
+            self.key_mapping_dropdowns[label] = dropdown
+            main_layout.addWidget(dropdown_label)
+            main_layout.addWidget(dropdown)
 
         # Auto-Start Checkbox
         self.auto_start_checkbox = QCheckBox("Enable Auto-Start")
@@ -95,17 +130,53 @@ class SettingsWindow(QMainWindow):
             self.settings["scroll_sensitivity"] = self.scroll_sensitivity_slider.value() / 10.0
             self.settings["deadzone"] = float(self.deadzone_entry.text())
             self.settings["curve_factor"] = float(self.curve_factor_dropdown.currentText())
-            self.settings["key_mapping"] = self.key_mapping_dropdown.currentText()
+
+            # Save the updated key mappings
+            for label, dropdown in self.key_mapping_dropdowns.items():
+                self.settings[f"key_{label.lower().replace(' ', '_')}"] = dropdown.currentText()
+
             save_settings(self.settings)
 
-            # Restart the WootRat thread
-            from main import restart_woot_rat_thread
-            restart_woot_rat_thread()
+            # Assemble the new key mapping
+            key_mapping = self.assemble_key_mapping()
+            if key_mapping:
+                # Restart the WootRat thread with the new key mapping
+                restart_woot_rat_thread(key_mapping)
 
             QMessageBox.information(self, "Success", "Settings updated successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
 
+    def assemble_key_mapping(self):
+        """
+        Assemble a new key mapping based on the selected keys and pass it to the WootRatEngine.
+        """
+        try:
+            key_mapping = {
+                "Up": self.settings["key_up"],
+                "Down": self.settings["key_down"],
+                "Left": self.settings["key_left"],
+                "Right": self.settings["key_right"],
+                "Scroll Up": self.settings["key_scroll_up"],
+                "Scroll Down": self.settings["key_scroll_down"],
+                "Scroll Right": self.settings["key_scroll_right"],
+                "Scroll Left": self.settings["key_scroll_left"]
+            }
+            print(f"New key mapping: {key_mapping}")
+            return key_mapping
+        except KeyError as e:
+            QMessageBox.critical(self, "Error", f"Error assembling key mapping: {e}")
+            # Return a default key mapping to avoid NoneType issues
+            return { #Review if this is needed
+                "Up": "Arrow Up",
+                "Down": "Arrow Down",
+                "Left": "Arrow Left",
+                "Right": "Arrow Right",
+                "Scroll Up": "Page Up",
+                "Scroll Down": "Page Down",
+                "Scroll Right": "End",
+                "Scroll Left": "Home"
+            }
 
     def toggle_auto_start(self, state):
         """
@@ -115,7 +186,7 @@ class SettingsWindow(QMainWindow):
             state (int): The state of the checkbox (Qt.Checked or Qt.Unchecked).
         """
         enable = state == Qt.Checked
-        app_path = os.path.abspath(sys.argv[0])  # Get the path to the current executable/script
+        app_path = os.path.abspath(sys.argv[0])
         try:
             if enable:
                 add_to_startup(app_path, "WootRat")
@@ -127,4 +198,4 @@ class SettingsWindow(QMainWindow):
             save_settings(self.settings)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to update auto-start: {e}")
-            
+

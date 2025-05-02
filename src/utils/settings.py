@@ -11,7 +11,15 @@ default_settings = {
     "scroll_sensitivity": 0.4,
     "deadzone": 0.08,
     "curve_factor": 10.0,
-    "key_mapping": "F13-F16 Keys"
+    "key_up": "Arrow Up",
+    "key_down": "Arrow Down",
+    "key_left": "Arrow Left",
+    "key_right": "Arrow Right",
+    "key_scroll_up": "Page Up",
+    "key_scroll_down": "Page Down",
+    "key_scroll_right": "End",
+    "key_scroll_left": "Home",
+    "auto_start": False
 }
 
 

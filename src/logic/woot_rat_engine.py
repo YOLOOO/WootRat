@@ -4,13 +4,37 @@ from utils.paths import get_sdk_path
 from pynput.mouse import Controller
 import time
 
-#
-# The last three keycodes in mapping will always be F17-F20
-#
 KEYCODES = {
-    "Arrow Keys":   [0x52, 0x51, 0x50, 0x4F, 0x6C, 0x6D, 0x6E, 0x6F],
-    "WASD Keys":    [0x1A, 0x04, 0x16, 0x07, 0x6C, 0x6D, 0x6E, 0x6F],
-    "F13-F16 Keys": [0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F] 
+    # Alphanumeric keys
+    "A": 0x04, "B": 0x05, "C": 0x06, "D": 0x07, "E": 0x08, "F": 0x09, "G": 0x0A,
+    "H": 0x0B, "I": 0x0C, "J": 0x0D, "K": 0x0E, "L": 0x0F, "M": 0x10, "N": 0x11,
+    "O": 0x12, "P": 0x13, "Q": 0x14, "R": 0x15, "S": 0x16, "T": 0x17, "U": 0x18,
+    "V": 0x19, "W": 0x1A, "X": 0x1B, "Y": 0x1C, "Z": 0x1D,
+    "1": 0x1E, "2": 0x1F, "3": 0x20, "4": 0x21, "5": 0x22, "6": 0x23, "7": 0x24,
+    "8": 0x25, "9": 0x26, "0": 0x27,
+
+    # Function keys
+    "F1": 0x3A, "F2": 0x3B, "F3": 0x3C, "F4": 0x3D, "F5": 0x3E, "F6": 0x3F,
+    "F7": 0x40, "F8": 0x41, "F9": 0x42, "F10": 0x43, "F11": 0x44, "F12": 0x45,
+    "F13": 0x68, "F14": 0x69, "F15": 0x6A, "F16": 0x6B, "F17": 0x6C, "F18": 0x6D,
+    "F19": 0x6E, "F20": 0x6F,
+
+    # Arrow keys
+    "Arrow Up": 0x52, "Arrow Down": 0x51, "Arrow Left": 0x50, "Arrow Right": 0x4F,
+
+    # Modifier keys
+    "Shift": 0xE1, "Ctrl": 0xE0, "Alt": 0xE2, "Caps Lock": 0x39, "Tab": 0x2B, "Esc": 0x29,
+
+    # Punctuation and symbols
+    "`": 0x35, "-": 0x2D, "=": 0x2E, "[": 0x2F, "]": 0x30, "\\": 0x31,
+    ";": 0x33, "'": 0x34, ",": 0x36, ".": 0x37, "/": 0x38,
+
+    # Space and Enter
+    "Space": 0x2C, "Enter": 0x28, "Backspace": 0x2A, "Delete": 0x4C, "Insert": 0x49,
+
+    # Other special keys
+    "Home": 0x4A, "End": 0x4D, "Page Up": 0x4B, "Page Down": 0x4E,
+    "Print Screen": 0x46, "Pause": 0x48
 }
 
 mouse = Controller()
@@ -80,7 +104,7 @@ class WootRatEngine:
         adj_value = (raw_value - deadzone) / (1.0 - deadzone)
         return pow(adj_value, curve_factor)
 
-    def run(self, sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, key_mapping="F13-F16 Keys", y_sensitivity_adjustment=0.0, stop_event=None):
+    def run(self, sensitivity_m=15.0, sensitivity_s=0.5, deadzone=0.1, curve_factor=2.0, key_mapping=None, y_sensitivity_adjustment=0.0, stop_event=None):
         """
         Main loop for processing analog input and controlling mouse movement and scrolling.
 
@@ -89,7 +113,7 @@ class WootRatEngine:
             sensitivity_s (float): Sensitivity for scrolling.
             deadzone (float): Deadzone threshold for analog input.
             curve_factor (float): Curve factor for non-linear scaling of input.
-            key_mapping (str): Key mapping to use for input (e.g., "F13-F16 Keys").
+            key_mapping (dict): Dictionary mapping actions (e.g., "Up", "Down") to key names.
             y_sensitivity_adjustment (float): Adjustment factor for Y-axis sensitivity.
             stop_event (threading.Event): Event to signal the thread to stop.
 
@@ -99,8 +123,16 @@ class WootRatEngine:
         if stop_event is None:
             raise ValueError("A threading.Event object must be provided for stop_event.")
 
-        keys = KEYCODES.get(key_mapping, KEYCODES["F13-F16 Keys"])
-        (up, left, down, right, scrl_up, scrl_down, scrl_right, scrl_left) = keys 
+        # Map key names to keycodes
+        keys = {action: KEYCODES[key_name] for action, key_name in key_mapping.items()}
+        up = keys["Up"]
+        down = keys["Down"]
+        left = keys["Left"]
+        right = keys["Right"]
+        scrl_up = keys["Scroll Up"]
+        scrl_down = keys["Scroll Down"]
+        scrl_right = keys["Scroll Right"]
+        scrl_left = keys["Scroll Left"]
 
         while not stop_event.is_set():
             try:
