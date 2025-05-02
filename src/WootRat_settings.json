@@ -1,9 +1,0 @@
-{
-    "mouse_sensitivity": 23,
-    "y_sensitivity_adjustment": 0.23,
-    "scroll_sensitivity": 0.4,
-    "deadzone": 0.08,
-    "curve_factor": 10.0,
-    "key_mapping": "F13-F16 Keys",
-    "auto_start": false
-}
