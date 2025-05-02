@@ -1,12 +1,15 @@
+import os
+import sys
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QComboBox,
-    QPushButton, QLineEdit, QWidget, QMessageBox
+    QPushButton, QLineEdit, QWidget, QMessageBox, QCheckBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
 from utils.settings import load_settings, save_settings
 from utils.paths import get_resource_path
+from utils.startup_platform import add_to_startup, remove_from_startup
 
 
 class SettingsWindow(QMainWindow):
@@ -64,6 +67,12 @@ class SettingsWindow(QMainWindow):
         main_layout.addWidget(key_mapping_label)
         main_layout.addWidget(self.key_mapping_dropdown)
 
+        # Auto-Start Checkbox
+        self.auto_start_checkbox = QCheckBox("Enable Auto-Start")
+        self.auto_start_checkbox.setChecked(self.settings.get("auto_start", False))
+        self.auto_start_checkbox.stateChanged.connect(self.toggle_auto_start)
+        main_layout.addWidget(self.auto_start_checkbox)
+
         button_layout = QHBoxLayout()
         save_button = QPushButton("Save Settings")
         save_button.clicked.connect(self.save_settings)
@@ -90,9 +99,32 @@ class SettingsWindow(QMainWindow):
             save_settings(self.settings)
 
             # Restart the WootRat thread
-            from main import restart_woot_rat_thread  # Import the function
+            from main import restart_woot_rat_thread
             restart_woot_rat_thread()
 
             QMessageBox.information(self, "Success", "Settings updated successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
+
+
+    def toggle_auto_start(self, state):
+        """
+        Enable or disable auto-start based on the checkbox state.
+
+        Args:
+            state (int): The state of the checkbox (Qt.Checked or Qt.Unchecked).
+        """
+        enable = state == Qt.Checked
+        app_path = os.path.abspath(sys.argv[0])  # Get the path to the current executable/script
+        try:
+            if enable:
+                add_to_startup(app_path, "WootRat")
+                QMessageBox.information(self, "Auto-Start", "Auto-start enabled successfully!")
+            else:
+                remove_from_startup("WootRat")
+                QMessageBox.information(self, "Auto-Start", "Auto-start disabled successfully!")
+            self.settings["auto_start"] = enable
+            save_settings(self.settings)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to update auto-start: {e}")
+            

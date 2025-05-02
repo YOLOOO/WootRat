@@ -68,7 +68,6 @@ def restart_woot_rat_thread():
 
     # Start a new thread with updated settings
     start_woot_rat_thread()
-    print("New WootRat thread started.")
 
 if __name__ == "__main__":
     try:

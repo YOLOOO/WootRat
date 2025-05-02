@@ -15,7 +15,7 @@ Why? Because I just hate mice.... #Python
 
 ## How to Use
 ### For Non-Programmers
-1. Download the latest release of `WootRatGui.exe` from the [Releases](https://github.com/YOLOOO/WootRat/releases) page on GitHub.
+1. Download the latest release of `WootRat.exe` from the [Releases](https://github.com/YOLOOO/WootRat/releases) page on GitHub.
 2. Unzip folder.
 3. Double-click the `.exe` file to launch the application.
 4. Configure your settings in the GUI and start using WootRat.
