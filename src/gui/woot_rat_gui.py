@@ -2,13 +2,13 @@ import os
 import sys
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QComboBox,
-    QPushButton, QLineEdit, QWidget, QMessageBox, QCheckBox
+    QPushButton, QLineEdit, QWidget, QMessageBox, QCheckBox, QTabWidget
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
 from utils.settings import (
-    load_settings, save_settings, DIRECTION_LABELS, KEYCODES, default_settings, VALUE_LABELS
+    load_settings, save_settings, DIRECTION_LABELS, KEYCODES, VALUE_LABELS
 )
 from utils.paths import get_resource_path
 from utils.startup_platform import add_to_startup, remove_from_startup
@@ -30,52 +30,65 @@ class SettingsWindow(QMainWindow):
         self.setWindowIcon(QIcon(icon_path))
 
         main_layout = QVBoxLayout()
+        tab_widget = QTabWidget()
+
+        # --- General Tab ---
+        general_tab = QWidget()
+        general_layout = QVBoxLayout()
 
         mouse_sensitivity_label = QLabel(VALUE_LABELS[0])
         self.mouse_sensitivity_slider = QSlider(Qt.Horizontal)
         self.mouse_sensitivity_slider.setRange(1, 80)
         self.mouse_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[0]]))
-        main_layout.addWidget(mouse_sensitivity_label)
-        main_layout.addWidget(self.mouse_sensitivity_slider)
+        general_layout.addWidget(mouse_sensitivity_label)
+        general_layout.addWidget(self.mouse_sensitivity_slider)
 
-        y_sensitivity_label = QLabel(VALUE_LABELS[1])
+        y_sensitivity_label = QLabel(VALUE_LABELS[2])
         self.y_sensitivity_slider = QSlider(Qt.Horizontal)
         self.y_sensitivity_slider.setRange(0, 50)
-        self.y_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[1]] * 100))
-        main_layout.addWidget(y_sensitivity_label)
-        main_layout.addWidget(self.y_sensitivity_slider)
+        self.y_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[2]] * 100))
+        general_layout.addWidget(y_sensitivity_label)
+        general_layout.addWidget(self.y_sensitivity_slider)
 
-        scroll_sensitivity_label = QLabel(VALUE_LABELS[2])
+        scroll_sensitivity_label = QLabel(VALUE_LABELS[1])
         self.scroll_sensitivity_slider = QSlider(Qt.Horizontal)
         self.scroll_sensitivity_slider.setRange(1, 20)
-        self.scroll_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[2]] * 10))
-        main_layout.addWidget(scroll_sensitivity_label)
-        main_layout.addWidget(self.scroll_sensitivity_slider)
+        self.scroll_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[1]] * 10))
+        general_layout.addWidget(scroll_sensitivity_label)
+        general_layout.addWidget(self.scroll_sensitivity_slider)
 
         curve_factor_label = QLabel(VALUE_LABELS[3])
         self.curve_factor_dropdown = QComboBox()
         self.curve_factor_dropdown.addItems([f"{x:.1f}" for x in [i * 0.5 for i in range(2, 21)]])
         self.curve_factor_dropdown.setCurrentText(str(self.settings[VALUE_LABELS[3]]))
-        main_layout.addWidget(curve_factor_label)
-        main_layout.addWidget(self.curve_factor_dropdown)
+        general_layout.addWidget(curve_factor_label)
+        general_layout.addWidget(self.curve_factor_dropdown)
 
         deadzone_label = QLabel(VALUE_LABELS[4])
         self.deadzone_entry = QLineEdit(str(self.settings[VALUE_LABELS[4]]))
-        main_layout.addWidget(deadzone_label)
-        main_layout.addWidget(self.deadzone_entry)
+        general_layout.addWidget(deadzone_label)
+        general_layout.addWidget(self.deadzone_entry)
 
-        # Key Mapping Dropdowns
+        # Auto-Start Checkbox
+        self.auto_start_checkbox = QCheckBox('Enable on system startup')
+        self.auto_start_checkbox.setChecked(self.settings.get(VALUE_LABELS[5], False))
+        self.auto_start_checkbox.stateChanged.connect(self.toggle_auto_start)
+        general_layout.addWidget(self.auto_start_checkbox)
+
+        general_tab.setLayout(general_layout)
+        tab_widget.addTab(general_tab, "General")
+
+        # --- Key Mapping Tab ---
+        keymap_tab = QWidget()
+        keymap_layout = QVBoxLayout()
         self.key_mapping_dropdowns = {}
         for label in DIRECTION_LABELS:
             dropdown_label = QLabel(label)
             dropdown = QComboBox()
             dropdown.addItems(ALL_KEYS)
-            # Get the saved key name, or default to the first key
             saved_key = self.settings.get(label)
             if saved_key is not None:
-                # If it's a keycode (int), convert to key name
                 if isinstance(saved_key, int):
-                    # Find key name by value
                     key_name = next((k for k, v in KEYCODES.items() if v == saved_key), ALL_KEYS[0])
                 else:
                     key_name = saved_key
@@ -83,20 +96,19 @@ class SettingsWindow(QMainWindow):
                 key_name = ALL_KEYS[0]
             dropdown.setCurrentText(key_name)
             self.key_mapping_dropdowns[label] = dropdown
-            main_layout.addWidget(dropdown_label)
-            main_layout.addWidget(dropdown)
+            keymap_layout.addWidget(dropdown_label)
+            keymap_layout.addWidget(dropdown)
+        keymap_tab.setLayout(keymap_layout)
+        tab_widget.addTab(keymap_tab, "Key Mapping")
 
-        # Auto-Start Checkbox
-        self.auto_start_checkbox = QCheckBox(VALUE_LABELS[5])
-        self.auto_start_checkbox.setChecked(self.settings.get(VALUE_LABELS[5], False))
-        self.auto_start_checkbox.stateChanged.connect(self.toggle_auto_start)
-        main_layout.addWidget(self.auto_start_checkbox)
+        # Add tabs to main layout
+        main_layout.addWidget(tab_widget)
 
+        # Buttons (save, etc.)
         button_layout = QHBoxLayout()
         save_button = QPushButton("Save Settings")
         save_button.clicked.connect(self.save_settings)
         button_layout.addWidget(save_button)
-
         main_layout.addLayout(button_layout)
 
         central_widget = QWidget()
