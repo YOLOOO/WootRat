@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QLineEdit, QWidget, QMessageBox, QCheckBox, QTabWidget
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 
 from utils.settings import (
     load_settings, save_settings, DIRECTION_LABELS, KEYCODES, VALUE_LABELS
@@ -27,6 +27,8 @@ class SettingsWindow(QMainWindow):
         self.setGeometry(100, 100, 400, 600)
 
         icon_path = get_resource_path("resources/woot_rat.png")
+        image_path = get_resource_path("resources/rat.png")
+        print("Support image path:", image_path)
         self.setWindowIcon(QIcon(icon_path))
 
         main_layout = QVBoxLayout()
@@ -100,6 +102,29 @@ class SettingsWindow(QMainWindow):
             keymap_layout.addWidget(dropdown)
         keymap_tab.setLayout(keymap_layout)
         tab_widget.addTab(keymap_tab, "Key Mapping")
+
+        # --- Support Tab ---
+        support_tab = QWidget()
+        support_layout = QVBoxLayout()
+
+        image_path = get_resource_path("resources/rat.png")
+        support_pixmap = QPixmap(image_path)
+
+        image_label = QLabel()
+        image_label.setPixmap(support_pixmap.scaled(300, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        image_label.setAlignment(Qt.AlignCenter)
+
+        support_layout.addWidget(image_label)
+        support_tab.setLayout(support_layout)
+
+        # Support text
+        support_text = QLabel("Need help?\nContact me at:\nviktortornborg@hotmail.com")
+        support_text.setAlignment(Qt.AlignCenter)
+        support_text.setStyleSheet("color: #cccccc; font-size: 14px;")
+        support_layout.addWidget(support_text)
+
+        support_tab.setLayout(support_layout)
+        tab_widget.addTab(support_tab, "Support")
 
         # Add tabs to main layout
         main_layout.addWidget(tab_widget)

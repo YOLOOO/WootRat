@@ -9,6 +9,7 @@ a = Analysis(
     ],
     datas=[
         ('resources/woot_rat.png', 'resources'),
+        ('resources/rat.png', 'resources'),
         ('resources/woot_rat.ico', 'resources'),
         ('utils/style.qss', 'utils')
     ],
