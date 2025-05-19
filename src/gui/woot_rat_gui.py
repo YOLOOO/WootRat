@@ -137,11 +137,9 @@ class SettingsWindow(QMainWindow):
 
             save_settings(self.settings)
 
-            # Assemble the new key mapping
+            # Assemble and pass the new key mapping
             key_mapping = self.assemble_key_mapping()
-            if key_mapping:
-                # Restart the WootRat thread with the new key mapping
-                restart_woot_rat_thread(key_mapping)
+            restart_woot_rat_thread(key_mapping)
 
             QMessageBox.information(self, "Success", "Settings updated successfully!")
         except Exception as e:
@@ -153,10 +151,10 @@ class SettingsWindow(QMainWindow):
         """
         try:
             key_mapping = {
-                "Up": self.settings["key_up"],
-                "Down": self.settings["key_down"],
-                "Left": self.settings["key_left"],
-                "Right": self.settings["key_right"],
+                "Up": self.settings["key_mouse_up"],
+                "Down": self.settings["key_mouse_down"],
+                "Left": self.settings["key_mouse_left"],
+                "Right": self.settings["key_mouse_right"],
                 "Scroll Up": self.settings["key_scroll_up"],
                 "Scroll Down": self.settings["key_scroll_down"],
                 "Scroll Right": self.settings["key_scroll_right"],

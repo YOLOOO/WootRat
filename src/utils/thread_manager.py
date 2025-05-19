@@ -20,10 +20,10 @@ def start_woot_rat_thread():
 
     # Assemble the key mapping from individual key configurations
     key_mapping = {
-        "Up": settings["key_up"],
-        "Down": settings["key_down"],
-        "Left": settings["key_left"],
-        "Right": settings["key_right"],
+        "Up": settings["key_mouse_up"],
+        "Down": settings["key_mouse_down"],
+        "Left": settings["key_mouse_left"],
+        "Right": settings["key_mouse_right"],
         "Scroll Up": settings["key_scroll_up"],
         "Scroll Down": settings["key_scroll_down"],
         "Scroll Right": settings["key_scroll_right"],
