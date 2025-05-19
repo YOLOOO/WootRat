@@ -10,8 +10,7 @@ a = Analysis(
     datas=[
         ('resources/woot_rat.png', 'resources'),
         ('resources/woot_rat.ico', 'resources'),
-        ('utils/style.qss', 'utils'),
-        ('utils/settings.json', 'utils'),
+        ('utils/style.qss', 'utils')
     ],
     hiddenimports=[
         'pynput.mouse',

@@ -1,9 +1,27 @@
 import threading
-from utils.settings import load_settings
+from utils.settings import load_settings, DIRECTION_LABELS, KEYCODES, default_settings, VALUE_LABELS
 from logic.woot_rat_engine import WootRatEngine
 
 woot_rat_thread = None
 stop_event = threading.Event()
+
+
+def assemble_key_mapping_from_settings(settings):
+    """
+    Assemble a key mapping dictionary for the engine: label -> keycode
+    """
+    try:
+        return {
+            label: KEYCODES[settings[label]] if isinstance(settings[label], str) else settings[label]
+            for label in DIRECTION_LABELS
+        }
+    except KeyError as e:
+        print(f"Error assembling key mapping: {e}")
+        # Fallback to defaults
+        return {
+            label: KEYCODES[default_settings[label]] if isinstance(default_settings[label], str) else default_settings[label]
+            for label in DIRECTION_LABELS
+        }
 
 
 def start_woot_rat_thread():
@@ -18,25 +36,15 @@ def start_woot_rat_thread():
     settings = load_settings()
     engine = WootRatEngine()
 
-    # Assemble the key mapping from individual key configurations
-    key_mapping = {
-        "Up": settings["key_mouse_up"],
-        "Down": settings["key_mouse_down"],
-        "Left": settings["key_mouse_left"],
-        "Right": settings["key_mouse_right"],
-        "Scroll Up": settings["key_scroll_up"],
-        "Scroll Down": settings["key_scroll_down"],
-        "Scroll Right": settings["key_scroll_right"],
-        "Scroll Left": settings["key_scroll_left"]
-    }
+    key_mapping = assemble_key_mapping_from_settings(settings)
 
     args = (
-        settings["mouse_sensitivity"],
-        settings["scroll_sensitivity"],
-        settings["deadzone"],
-        settings["curve_factor"],
+        settings[VALUE_LABELS[0]],
+        settings[VALUE_LABELS[1]],
+        settings[VALUE_LABELS[2]],
+        settings[VALUE_LABELS[3]],
+        settings[VALUE_LABELS[4]],
         key_mapping,
-        settings["y_sensitivity_adjustment"],
         stop_event
     )
     woot_rat_thread = threading.Thread(target=engine.run, args=args, daemon=True)
@@ -79,31 +87,20 @@ def restart_woot_rat_thread(key_mapping=None):
     # Reset the stop_event for the new thread
     stop_event = threading.Event()
 
-    # Start a new thread with updated settings
     settings = load_settings()
     engine = WootRatEngine()
 
-    # Ensure key_mapping is not None
+    # If no key_mapping is passed, assemble from settings
     if key_mapping is None:
-        print("Error: Key mapping is None. Using default key mapping.")
-        key_mapping = {
-            "Up": "Arrow Up",
-            "Down": "Arrow Down",
-            "Left": "Arrow Left",
-            "Right": "Arrow Right",
-            "Scroll Up": "Page Up",
-            "Scroll Down": "Page Down",
-            "Scroll Right": "End",
-            "Scroll Left": "Home"
-        }
+        key_mapping = assemble_key_mapping_from_settings(settings)
 
     args = (
-        settings["mouse_sensitivity"],
-        settings["scroll_sensitivity"],
-        settings["deadzone"],
-        settings["curve_factor"],
+        settings[VALUE_LABELS[0]],
+        settings[VALUE_LABELS[1]],
+        settings[VALUE_LABELS[2]],
+        settings[VALUE_LABELS[3]],
+        settings[VALUE_LABELS[4]],
         key_mapping,
-        settings["y_sensitivity_adjustment"],
         stop_event
     )
     woot_rat_thread = threading.Thread(target=engine.run, args=args, daemon=True)

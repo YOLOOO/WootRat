@@ -7,36 +7,14 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-from utils.settings import load_settings, save_settings
+from utils.settings import (
+    load_settings, save_settings, DIRECTION_LABELS, KEYCODES, default_settings, VALUE_LABELS
+)
 from utils.paths import get_resource_path
 from utils.startup_platform import add_to_startup, remove_from_startup
 from utils.thread_manager import restart_woot_rat_thread
 
-ALL_KEYS = [
-    # Alphanumeric keys
-    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-
-    # Function keys
-    "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10",
-    "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20",
-
-    # Arrow keys
-    "Arrow Up", "Arrow Down", "Arrow Left", "Arrow Right",
-
-    # Modifier keys
-    "Shift", "Ctrl", "Alt", "Caps Lock", "Tab", "Esc",
-
-    # Punctuation and symbols
-    "`", "-", "=", "[", "]", "\\", ";", "'", ",", ".", "/",
-
-    # Space and Enter
-    "Space", "Enter", "Backspace", "Delete", "Insert",
-
-    # Other special keys
-    "Home", "End", "Page Up", "Page Down", "Print Screen", "Pause"
-]
+ALL_KEYS = list(KEYCODES.keys())
 
 class SettingsWindow(QMainWindow):
     def __init__(self):
@@ -53,58 +31,64 @@ class SettingsWindow(QMainWindow):
 
         main_layout = QVBoxLayout()
 
-        mouse_sensitivity_label = QLabel("Mouse Sensitivity")
+        mouse_sensitivity_label = QLabel(VALUE_LABELS[0])
         self.mouse_sensitivity_slider = QSlider(Qt.Horizontal)
         self.mouse_sensitivity_slider.setRange(1, 80)
-        self.mouse_sensitivity_slider.setValue(int(self.settings["mouse_sensitivity"]))
+        self.mouse_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[0]]))
         main_layout.addWidget(mouse_sensitivity_label)
         main_layout.addWidget(self.mouse_sensitivity_slider)
 
-        y_sensitivity_label = QLabel("Y-Axis Dampening (%)")
+        y_sensitivity_label = QLabel(VALUE_LABELS[1])
         self.y_sensitivity_slider = QSlider(Qt.Horizontal)
         self.y_sensitivity_slider.setRange(0, 50)
-        self.y_sensitivity_slider.setValue(int(self.settings["y_sensitivity_adjustment"] * 100))
+        self.y_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[1]] * 100))
         main_layout.addWidget(y_sensitivity_label)
         main_layout.addWidget(self.y_sensitivity_slider)
 
-        scroll_sensitivity_label = QLabel("Scroll Sensitivity")
+        scroll_sensitivity_label = QLabel(VALUE_LABELS[2])
         self.scroll_sensitivity_slider = QSlider(Qt.Horizontal)
         self.scroll_sensitivity_slider.setRange(1, 20)
-        self.scroll_sensitivity_slider.setValue(int(self.settings["scroll_sensitivity"] * 10))
+        self.scroll_sensitivity_slider.setValue(int(self.settings[VALUE_LABELS[2]] * 10))
         main_layout.addWidget(scroll_sensitivity_label)
         main_layout.addWidget(self.scroll_sensitivity_slider)
 
-        deadzone_label = QLabel("Deadzone")
-        self.deadzone_entry = QLineEdit(str(self.settings["deadzone"]))
-        main_layout.addWidget(deadzone_label)
-        main_layout.addWidget(self.deadzone_entry)
-
-        curve_factor_label = QLabel("Curve Factor")
+        curve_factor_label = QLabel(VALUE_LABELS[3])
         self.curve_factor_dropdown = QComboBox()
         self.curve_factor_dropdown.addItems([f"{x:.1f}" for x in [i * 0.5 for i in range(2, 21)]])
-        self.curve_factor_dropdown.setCurrentText(str(self.settings["curve_factor"]))
+        self.curve_factor_dropdown.setCurrentText(str(self.settings[VALUE_LABELS[3]]))
         main_layout.addWidget(curve_factor_label)
         main_layout.addWidget(self.curve_factor_dropdown)
 
+        deadzone_label = QLabel(VALUE_LABELS[4])
+        self.deadzone_entry = QLineEdit(str(self.settings[VALUE_LABELS[4]]))
+        main_layout.addWidget(deadzone_label)
+        main_layout.addWidget(self.deadzone_entry)
+
         # Key Mapping Dropdowns
         self.key_mapping_dropdowns = {}
-        key_mapping_labels = [
-            "Mouse Up", "Mouse Down", "Mouse Left", "Mouse Right",
-            "Scroll Up", "Scroll Down", "Scroll Right", "Scroll Left"
-        ]
-
-        for label in key_mapping_labels:
+        for label in DIRECTION_LABELS:
             dropdown_label = QLabel(label)
             dropdown = QComboBox()
             dropdown.addItems(ALL_KEYS)
-            dropdown.setCurrentText(self.settings.get(f"key_{label.lower().replace(' ', '_')}", "F13"))
+            # Get the saved key name, or default to the first key
+            saved_key = self.settings.get(label)
+            if saved_key is not None:
+                # If it's a keycode (int), convert to key name
+                if isinstance(saved_key, int):
+                    # Find key name by value
+                    key_name = next((k for k, v in KEYCODES.items() if v == saved_key), ALL_KEYS[0])
+                else:
+                    key_name = saved_key
+            else:
+                key_name = ALL_KEYS[0]
+            dropdown.setCurrentText(key_name)
             self.key_mapping_dropdowns[label] = dropdown
             main_layout.addWidget(dropdown_label)
             main_layout.addWidget(dropdown)
 
         # Auto-Start Checkbox
-        self.auto_start_checkbox = QCheckBox("Enable Auto-Start")
-        self.auto_start_checkbox.setChecked(self.settings.get("auto_start", False))
+        self.auto_start_checkbox = QCheckBox(VALUE_LABELS[5])
+        self.auto_start_checkbox.setChecked(self.settings.get(VALUE_LABELS[5], False))
         self.auto_start_checkbox.stateChanged.connect(self.toggle_auto_start)
         main_layout.addWidget(self.auto_start_checkbox)
 
@@ -124,57 +108,26 @@ class SettingsWindow(QMainWindow):
         Save the current settings and restart the WootRat thread.
         """
         try:
-            # Save the updated settings
-            self.settings["mouse_sensitivity"] = self.mouse_sensitivity_slider.value()
-            self.settings["y_sensitivity_adjustment"] = self.y_sensitivity_slider.value() / 100.0
-            self.settings["scroll_sensitivity"] = self.scroll_sensitivity_slider.value() / 10.0
-            self.settings["deadzone"] = float(self.deadzone_entry.text())
-            self.settings["curve_factor"] = float(self.curve_factor_dropdown.currentText())
+            # Save the updated main settings using VALUE_LABELS
+            self.settings[VALUE_LABELS[0]] = self.mouse_sensitivity_slider.value()
+            self.settings[VALUE_LABELS[1]] = self.scroll_sensitivity_slider.value() / 10.0
+            self.settings[VALUE_LABELS[2]] = self.y_sensitivity_slider.value() / 100.0
+            self.settings[VALUE_LABELS[3]] = float(self.curve_factor_dropdown.currentText())
+            self.settings[VALUE_LABELS[4]] = float(self.deadzone_entry.text())
+            self.settings[VALUE_LABELS[5]] = self.auto_start_checkbox.isChecked()
 
-            # Save the updated key mappings
+            # Save the updated key mappings as key names
             for label, dropdown in self.key_mapping_dropdowns.items():
-                self.settings[f"key_{label.lower().replace(' ', '_')}"] = dropdown.currentText()
+                self.settings[label] = dropdown.currentText()
 
             save_settings(self.settings)
 
-            # Assemble and pass the new key mapping
-            key_mapping = self.assemble_key_mapping()
-            restart_woot_rat_thread(key_mapping)
+            restart_woot_rat_thread()
 
             QMessageBox.information(self, "Success", "Settings updated successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
 
-    def assemble_key_mapping(self):
-        """
-        Assemble a new key mapping based on the selected keys and pass it to the WootRatEngine.
-        """
-        try:
-            key_mapping = {
-                "Up": self.settings["key_mouse_up"],
-                "Down": self.settings["key_mouse_down"],
-                "Left": self.settings["key_mouse_left"],
-                "Right": self.settings["key_mouse_right"],
-                "Scroll Up": self.settings["key_scroll_up"],
-                "Scroll Down": self.settings["key_scroll_down"],
-                "Scroll Right": self.settings["key_scroll_right"],
-                "Scroll Left": self.settings["key_scroll_left"]
-            }
-            print(f"New key mapping: {key_mapping}")
-            return key_mapping
-        except KeyError as e:
-            QMessageBox.critical(self, "Error", f"Error assembling key mapping: {e}")
-            # Return a default key mapping to avoid NoneType issues
-            return { #Review if this is needed
-                "Up": "Arrow Up",
-                "Down": "Arrow Down",
-                "Left": "Arrow Left",
-                "Right": "Arrow Right",
-                "Scroll Up": "Page Up",
-                "Scroll Down": "Page Down",
-                "Scroll Right": "End",
-                "Scroll Left": "Home"
-            }
 
     def toggle_auto_start(self, state):
         """
@@ -192,7 +145,7 @@ class SettingsWindow(QMainWindow):
             else:
                 remove_from_startup("WootRat")
                 QMessageBox.information(self, "Auto-Start", "Auto-start disabled successfully!")
-            self.settings["auto_start"] = enable
+            self.settings[VALUE_LABELS[5]] = enable
             save_settings(self.settings)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to update auto-start: {e}")
