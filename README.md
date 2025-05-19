@@ -10,7 +10,7 @@ Why? Because I just hate mice.... #Python
 - Smooth mouse movement using analog inputs.
 - Configurable sensitivity (movement and scroll), deadzone, and curve factor.
 - Dampened Y axis for better control.
-- Multiple key mapping options (Arrow Keys, WASD, F13-F16).
+- Full key mapping options.
 - Easy-to-use GUI for settings.
 
 ## How to Use
@@ -25,8 +25,6 @@ This window must remain active during mouse emulation.
 When you close the window the mouse emulation will be disabled and you will need to restart it to use it again.
 
 The use-case is to simply start the application window and start mousing. Whenever you tweak values and press the 'Save Settings' button in the settings window, the values are stored in the settings file. 
-
-The buttons F17 and F18 will for now always be your scroll buttons (up and down), regardless of the other configuration you choose.
 
 ### For Programmers
 1. Clone the repository: 
@@ -43,7 +41,7 @@ pip install -r requirements.txt
 python src/main.py
 ```
 ### Mac or Linux?
-Yes, this probably works on these platforms. But if you are on these platforms you have to follow the guide below. Work is currently ongoing making sure it will work.
+If you are on these platforms you have to follow the guide below. Work is currently ongoing making sure it will work.
 
 ## Build Executable from Source
 1. Install pyinstaller:
@@ -82,9 +80,7 @@ src/
 - └── woot_rat.spec
 
 # Prerequisites
-- A Wooting keyboard with at least WASD, arrow keys, or F13-F16 mapped using Wootility.
 - For maximum mouse emulation, configure mouse button mapping in Wootility.
-- Mapp F17 and F18 for the scroll functionality.
 - Python 3.8 or higher (for programmers).
 
 # Important Notes
