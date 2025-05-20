@@ -44,6 +44,8 @@ def start_woot_rat_thread():
         settings[VALUE_LABELS[2]],
         settings[VALUE_LABELS[3]],
         settings[VALUE_LABELS[4]],
+        settings[VALUE_LABELS[5]],
+        settings[VALUE_LABELS[6]],
         key_mapping,
         stop_event
     )
@@ -100,6 +102,8 @@ def restart_woot_rat_thread(key_mapping=None):
         settings[VALUE_LABELS[2]],
         settings[VALUE_LABELS[3]],
         settings[VALUE_LABELS[4]],
+        settings[VALUE_LABELS[5]],  # Outer Deadzone (default 1.0)
+        settings[VALUE_LABELS[6]],#TUPE
         key_mapping,
         stop_event
     )

@@ -66,14 +66,48 @@ class SettingsWindow(QMainWindow):
         general_layout.addWidget(curve_factor_label)
         general_layout.addWidget(self.curve_factor_dropdown)
 
+        # Deadzone
         deadzone_label = QLabel(VALUE_LABELS[4])
-        self.deadzone_entry = QLineEdit(str(self.settings[VALUE_LABELS[4]]))
+        self.deadzone_slider = QSlider(Qt.Horizontal)
+        self.deadzone_slider.setRange(0, 50)  # 0.00 to 0.50
+        deadzone_value = self.settings.get(VALUE_LABELS[4], 0.08)
+        self.deadzone_slider.setValue(int(deadzone_value * 100))
+        self.deadzone_slider.valueChanged.connect(
+            lambda v: self.deadzone_value_label.setText(f"{v/100:.2f}")
+        )
+        deadzone_layout = QHBoxLayout()
+        self.deadzone_value_label = QLabel(f"{deadzone_value:.2f}")
+        deadzone_layout.addWidget(self.deadzone_slider)
+        deadzone_layout.addWidget(self.deadzone_value_label)
         general_layout.addWidget(deadzone_label)
-        general_layout.addWidget(self.deadzone_entry)
+        general_layout.addLayout(deadzone_layout)
+
+        # Outer Deadzone
+        outer_deadzone_label = QLabel(VALUE_LABELS[5])
+        self.outer_deadzone_slider = QSlider(Qt.Horizontal)
+        self.outer_deadzone_slider.setRange(80, 100)
+        outer_deadzone_value = self.settings.get(VALUE_LABELS[5], 1.0)
+        self.outer_deadzone_slider.setValue(int(outer_deadzone_value * 100))
+        self.outer_deadzone_slider.valueChanged.connect(
+            lambda v: self.outer_deadzone_value_label.setText(f"{v/100:.2f}")
+        )
+        outer_deadzone_layout = QHBoxLayout()
+        self.outer_deadzone_value_label = QLabel(f"{outer_deadzone_value:.2f}")
+        outer_deadzone_layout.addWidget(self.outer_deadzone_slider)
+        outer_deadzone_layout.addWidget(self.outer_deadzone_value_label)
+        general_layout.addWidget(outer_deadzone_label)
+        general_layout.addLayout(outer_deadzone_layout)
+
+        curve_type_label = QLabel(VALUE_LABELS[6])
+        self.curve_type_dropdown = QComboBox()
+        self.curve_type_dropdown.addItems(["power", "log", "s_curve", "linear"])
+        self.curve_type_dropdown.setCurrentText(self.settings.get("Curve Type", "power"))
+        general_layout.addWidget(curve_type_label)
+        general_layout.addWidget(self.curve_type_dropdown)
 
         # Auto-Start Checkbox
         self.auto_start_checkbox = QCheckBox('Enable on system startup')
-        self.auto_start_checkbox.setChecked(self.settings.get(VALUE_LABELS[5], False))
+        self.auto_start_checkbox.setChecked(self.settings.get(VALUE_LABELS[7], False))
         self.auto_start_checkbox.stateChanged.connect(self.toggle_auto_start)
         general_layout.addWidget(self.auto_start_checkbox)
 
@@ -120,7 +154,7 @@ class SettingsWindow(QMainWindow):
         # Support text
         support_text = QLabel("Need help?\nContact me at:\nviktortornborg@hotmail.com")
         support_text.setAlignment(Qt.AlignCenter)
-        support_text.setStyleSheet("color: #cccccc; font-size: 14px;")
+        support_text.setStyleSheet("color: #cccccc; font-size: 16px;")
         support_layout.addWidget(support_text)
 
         support_tab.setLayout(support_layout)
@@ -131,14 +165,24 @@ class SettingsWindow(QMainWindow):
 
         # Buttons (save, etc.)
         button_layout = QHBoxLayout()
-        save_button = QPushButton("Save Settings")
-        save_button.clicked.connect(self.save_settings)
-        button_layout.addWidget(save_button)
+        self.save_button = QPushButton("Save Settings")
+        self.save_button.clicked.connect(self.save_settings)
+        button_layout.addWidget(self.save_button)
         main_layout.addLayout(button_layout)
 
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
+
+        def on_tab_changed(index):
+            if tab_widget.tabText(index) == 'Support':
+                self.save_button.hide()
+            else:
+                self.save_button.show()
+
+        tab_widget.currentChanged.connect(on_tab_changed)
+
+        on_tab_changed(tab_widget.currentIndex())
 
     def save_settings(self):
         """
@@ -150,8 +194,10 @@ class SettingsWindow(QMainWindow):
             self.settings[VALUE_LABELS[1]] = self.scroll_sensitivity_slider.value() / 10.0
             self.settings[VALUE_LABELS[2]] = self.y_sensitivity_slider.value() / 100.0
             self.settings[VALUE_LABELS[3]] = float(self.curve_factor_dropdown.currentText())
-            self.settings[VALUE_LABELS[4]] = float(self.deadzone_entry.text())
-            self.settings[VALUE_LABELS[5]] = self.auto_start_checkbox.isChecked()
+            self.settings[VALUE_LABELS[4]] = self.deadzone_slider.value() / 100.0
+            self.settings[VALUE_LABELS[5]] = self.outer_deadzone_slider.value() / 100.0
+            self.settings[VALUE_LABELS[6]] = self.curve_type_dropdown.currentText()
+            self.settings[VALUE_LABELS[7]] = self.auto_start_checkbox.isChecked()
 
             # Save the updated key mappings as key names
             for label, dropdown in self.key_mapping_dropdowns.items():

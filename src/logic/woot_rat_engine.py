@@ -4,6 +4,7 @@ from pynput.mouse import Controller
 from utils.settings import KEYCODES, DIRECTION_LABELS
 from utils.paths import get_sdk_path
 import time
+import math
 
 mouse = Controller()
 
@@ -47,32 +48,49 @@ class WootRatEngine:
         self.sdk.wooting_analog_read_analog.restype = ctypes.c_float
         self.sdk.wooting_analog_read_analog.argtypes = [ctypes.c_ushort]
 
-    def process_input(self, raw_value, deadzone, curve_factor):
+    def process_input(self, raw_value, deadzone, curve_factor, outer_deadzone=1.0, curve_type="power"):
         """
-        Process raw analog input by applying a deadzone and curve factor.
+        Process analog input with inner/outer deadzone and selectable curve type.
 
         Args:
-            raw_value (float): The raw analog input value (0.0 to 1.0).
-            deadzone (float): The deadzone threshold (0.0 to 1.0).
-            curve_factor (float): The curve factor to apply for non-linear scaling.
+            raw_value (float): Analog input (0.0 to 1.0)
+            deadzone (float): Inner deadzone (0.0 to <1.0)
+            curve_factor (float): Curve steepness (>0)
+            outer_deadzone (float): Outer deadzone (>deadzone to 1.0)
+            curve_type (str): "power", "log", "s_curve", or "linear"
 
         Returns:
-            float: The processed input value after applying the deadzone and curve factor.
-
-        Raises:
-            ValueError: If the deadzone is not between 0.0 and 1.0 (exclusive) or if the curve factor is <= 0.
+            float: Processed value (0.0 to 1.0)
         """
-        if deadzone < 0.0 or deadzone >= 1.0:
-            raise ValueError("Deadzone must be between 0.0 and 1.0 (exclusive).")
+        if not (0.0 <= deadzone < outer_deadzone <= 1.0):
+            raise ValueError("Deadzone values must satisfy 0.0 <= deadzone < outer_deadzone <= 1.0")
         if curve_factor <= 0.0:
             raise ValueError("Curve factor must be greater than 0.0.")
 
         if raw_value < deadzone:
             return 0.0
-        adj_value = (raw_value - deadzone) / (1.0 - deadzone)
-        return pow(adj_value, curve_factor)
+        if raw_value > outer_deadzone:
+            return 1.0
 
-    def run(self, sensitivity_m=15.0, sensitivity_s=0.5, y_sensitivity_adjustment=0.0, curve_factor=2.0, deadzone=0.1, key_mapping=None, stop_event=None):
+        # Normalize between deadzone and outer_deadzone
+        adj_value = (raw_value - deadzone) / (outer_deadzone - deadzone)
+        adj_value = max(0.0, min(adj_value, 1.0))  # Clamp
+
+        # Apply curve
+        if curve_type == "power":
+            return math.pow(adj_value, curve_factor)
+        elif curve_type == "log":
+            # log1p(x) = log(1 + x), safe for x=0
+            return math.log1p(curve_factor * adj_value) / math.log1p(curve_factor)
+        elif curve_type == "s_curve":
+            # S-curve (sigmoid), curve_factor controls steepness
+            return 1 / (1 + math.exp(-curve_factor * (adj_value - 0.5)))
+        elif curve_type == "linear":
+            return adj_value
+        else:
+            raise ValueError(f"Unknown curve_type: {curve_type}")
+
+    def run(self, sensitivity_m=15.0, sensitivity_s=0.5, y_sensitivity_adjustment=0.0, curve_factor=2.0, deadzone=0.1, outer_deadzone=1.0, curve_type='power', key_mapping=None, stop_event=None):
         """
         Main loop for processing analog input and controlling mouse movement and scrolling.
 
@@ -127,16 +145,16 @@ class WootRatEngine:
                 val_scrl_left = self.sdk.wooting_analog_read_analog(scrl_left)
 
                 # Process input for movement
-                dy -= self.process_input(val_up, deadzone, curve_factor) * sensitivity_m * (1 - y_sensitivity_adjustment)
-                dy += self.process_input(val_down, deadzone, curve_factor) * sensitivity_m * (1 - y_sensitivity_adjustment)
-                dx -= self.process_input(val_left, deadzone, curve_factor) * sensitivity_m
-                dx += self.process_input(val_right, deadzone, curve_factor) * sensitivity_m
+                dy -= self.process_input(val_up, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_m * (1 - y_sensitivity_adjustment)
+                dy += self.process_input(val_down, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_m * (1 - y_sensitivity_adjustment)
+                dx -= self.process_input(val_left, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_m
+                dx += self.process_input(val_right, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_m
 
                 # Process input for scrolling
-                scr_x += self.process_input(val_scrl_left, deadzone, curve_factor) * sensitivity_s
-                scr_x -= self.process_input(val_scrl_right, deadzone, curve_factor) * sensitivity_s
-                scr_y += self.process_input(val_scrl_up, deadzone, curve_factor) * sensitivity_s
-                scr_y -= self.process_input(val_scrl_down, deadzone, curve_factor) * sensitivity_s
+                scr_x += self.process_input(val_scrl_left, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_s
+                scr_x -= self.process_input(val_scrl_right, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_s
+                scr_y += self.process_input(val_scrl_up, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_s
+                scr_y -= self.process_input(val_scrl_down, deadzone, curve_factor, outer_deadzone, curve_type) * sensitivity_s
 
                 # Apply movement and scrolling
                 if dx or dy:

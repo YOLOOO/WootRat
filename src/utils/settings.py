@@ -55,6 +55,8 @@ VALUE_LABELS = [
     "Y Sensitivity Adjustment",
     "Curve Factor",
     "Deadzone",
+    "Outer Deadzone",
+    "Curve Type",
     "Auto Start"
 ]
 
@@ -64,16 +66,18 @@ default_settings = {
     VALUE_LABELS[1]: 0.4,
     VALUE_LABELS[2]: 0.23,
     VALUE_LABELS[3]: 10.0,
-    VALUE_LABELS[4]: 0.8,
+    VALUE_LABELS[4]: 0.1,
+    VALUE_LABELS[5]: 1.0,
+    VALUE_LABELS[6]: 'power',
     DIRECTION_LABELS[0]: KEYCODES['Arrow Up'],
-    DIRECTION_LABELS[1]: KEYCODES["Arrow Down"],
-    DIRECTION_LABELS[2]: KEYCODES["Arrow Left"],
-    DIRECTION_LABELS[3]: KEYCODES["Arrow Right"],
-    DIRECTION_LABELS[4]: KEYCODES["Page Up"],
-    DIRECTION_LABELS[5]: KEYCODES["Page Down"],
-    DIRECTION_LABELS[6]: KEYCODES["End"],
-    DIRECTION_LABELS[7]: KEYCODES["Home"],
-    VALUE_LABELS[5]: False
+    DIRECTION_LABELS[1]: KEYCODES['Arrow Down'],
+    DIRECTION_LABELS[2]: KEYCODES['Arrow Left'],
+    DIRECTION_LABELS[3]: KEYCODES['Arrow Right'],
+    DIRECTION_LABELS[4]: KEYCODES['Page Up'],
+    DIRECTION_LABELS[5]: KEYCODES['Page Down'],
+    DIRECTION_LABELS[6]: KEYCODES['End'],
+    DIRECTION_LABELS[7]: KEYCODES['Home'],
+    VALUE_LABELS[7]: False
 }
 
 
