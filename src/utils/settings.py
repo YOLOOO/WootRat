@@ -1,8 +1,10 @@
 import os
 import sys
 import json
+from utils.paths import get_runtime_settings
+
 # JSON file for settings
-SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "WootRat_settings.json")
+SETTINGS_FILE = get_runtime_settings()
 
 KEYCODES = {
     # Alphanumeric keys

@@ -19,3 +19,9 @@ def get_sdk_path():
     Get the path to the SDK directory.
     """
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "wooting_analog_sdk.dll")
+
+def get_runtime_settings():
+    """
+    Get the path to runtime settings.
+    """
+    return os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "WootRat_settings.json")
