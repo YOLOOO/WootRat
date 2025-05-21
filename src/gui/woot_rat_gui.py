@@ -1,15 +1,18 @@
 import os
 import sys
+import numpy as np
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QComboBox,
-    QPushButton, QLineEdit, QWidget, QMessageBox, QCheckBox, QTabWidget
+    QPushButton, QWidget, QMessageBox, QCheckBox, QTabWidget
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
-
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 from utils.settings import (
     load_settings, save_settings, DIRECTION_LABELS, KEYCODES, VALUE_LABELS
 )
+from logic.woot_rat_engine import WootRatEngine
 from utils.paths import get_resource_path
 from utils.startup_platform import add_to_startup, remove_from_startup
 from utils.thread_manager import restart_woot_rat_thread
@@ -32,6 +35,7 @@ class SettingsWindow(QMainWindow):
             except Exception as e:
                 print("Could not set dark mode for title bar:", e)
         self.settings = load_settings()
+        self.engine = WootRatEngine()
         self.init_ui()
 
     def init_ui(self):
@@ -39,8 +43,6 @@ class SettingsWindow(QMainWindow):
         self.setGeometry(100, 100, 400, 600)
 
         icon_path = get_resource_path("resources/woot_rat.png")
-        image_path = get_resource_path("resources/rat.png")
-        print("Support image path:", image_path)
         self.setWindowIcon(QIcon(icon_path))
 
         main_layout = QVBoxLayout()
@@ -110,13 +112,6 @@ class SettingsWindow(QMainWindow):
         general_layout.addWidget(outer_deadzone_label)
         general_layout.addLayout(outer_deadzone_layout)
 
-        curve_type_label = QLabel(VALUE_LABELS[6])
-        self.curve_type_dropdown = QComboBox()
-        self.curve_type_dropdown.addItems(["power", "log", "s_curve", "linear"])
-        self.curve_type_dropdown.setCurrentText(self.settings.get("Curve Type", "power"))
-        general_layout.addWidget(curve_type_label)
-        general_layout.addWidget(self.curve_type_dropdown)
-
         # Auto-Start Checkbox
         self.auto_start_checkbox = QCheckBox('Enable on system startup')
         self.auto_start_checkbox.setChecked(self.settings.get(VALUE_LABELS[7], False))
@@ -149,26 +144,50 @@ class SettingsWindow(QMainWindow):
         keymap_tab.setLayout(keymap_layout)
         tab_widget.addTab(keymap_tab, "Key Mapping")
 
+        # --- Diagnostics Tab ---
+        diagnostics_tab = QWidget()
+        diagnostics_layout = QVBoxLayout()
+
+        # Curve type dropdown (now only in Diagnostics tab)
+        curve_type_label = QLabel(VALUE_LABELS[6])
+        self.curve_type_dropdown = QComboBox()
+        self.curve_type_dropdown.addItems(["power", "log", "s_curve", "linear"])
+        self.curve_type_dropdown.setCurrentText(self.settings.get("Curve Type", "power"))
+        diagnostics_layout.addWidget(curve_type_label)
+        diagnostics_layout.addWidget(self.curve_type_dropdown)
+
+        # Curve visualization
+        curve_label = QLabel("Curve Visualization")
+        diagnostics_layout.addWidget(curve_label)
+
+        curve_explanation = QLabel(
+            "Note: Raw input 0.0–1.0 corresponds to 0.0–4.0 mm of analog travel\n"
+            "on most Wooting switches. 0.0 = not pressed, 1.0 = fully pressed (4.0 mm)."
+        )
+        curve_explanation.setStyleSheet("color: #bbbbbb; font-size: 12px;")
+        curve_explanation.setWordWrap(True)
+        diagnostics_layout.addWidget(curve_explanation)
+
+        self.curve_canvas = FigureCanvas(plt.Figure(figsize=(4, 2)))
+        diagnostics_layout.addWidget(self.curve_canvas)
+        self.curve_ax = self.curve_canvas.figure.subplots()
+
+        diagnostics_tab.setLayout(diagnostics_layout)
+        tab_widget.addTab(diagnostics_tab, "Diagnostics")
+
         # --- Support Tab ---
         support_tab = QWidget()
         support_layout = QVBoxLayout()
-
         image_path = get_resource_path("resources/rat.png")
         support_pixmap = QPixmap(image_path)
-
         image_label = QLabel()
         image_label.setPixmap(support_pixmap.scaled(300, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         image_label.setAlignment(Qt.AlignCenter)
-
         support_layout.addWidget(image_label)
-        support_tab.setLayout(support_layout)
-
-        # Support text
         support_text = QLabel("Need help?\nContact me at:\nviktortornborg@hotmail.com")
         support_text.setAlignment(Qt.AlignCenter)
         support_text.setStyleSheet("color: #cccccc; font-size: 16px;")
         support_layout.addWidget(support_text)
-
         support_tab.setLayout(support_layout)
         tab_widget.addTab(support_tab, "Support")
 
@@ -186,22 +205,30 @@ class SettingsWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
+        # --- Tab change logic ---
         def on_tab_changed(index):
-            if tab_widget.tabText(index) == 'Support':
+            tab_name = tab_widget.tabText(index)
+            if tab_name == 'Support':
                 self.save_button.hide()
             else:
                 self.save_button.show()
-
         tab_widget.currentChanged.connect(on_tab_changed)
-
         on_tab_changed(tab_widget.currentIndex())
+
+        # Connect sliders and dropdowns to plot_curve
+        self.deadzone_slider.valueChanged.connect(self.plot_curve)
+        self.outer_deadzone_slider.valueChanged.connect(self.plot_curve)
+        self.curve_factor_dropdown.currentTextChanged.connect(self.plot_curve)
+        self.curve_type_dropdown.currentTextChanged.connect(self.plot_curve)
+
+        # Initial curve plot
+        self.plot_curve()
 
     def save_settings(self):
         """
         Save the current settings and restart the WootRat thread.
         """
         try:
-            # Save the updated main settings using VALUE_LABELS
             self.settings[VALUE_LABELS[0]] = self.mouse_sensitivity_slider.value()
             self.settings[VALUE_LABELS[1]] = self.scroll_sensitivity_slider.value() / 10.0
             self.settings[VALUE_LABELS[2]] = self.y_sensitivity_slider.value() / 100.0
@@ -210,27 +237,15 @@ class SettingsWindow(QMainWindow):
             self.settings[VALUE_LABELS[5]] = self.outer_deadzone_slider.value() / 100.0
             self.settings[VALUE_LABELS[6]] = self.curve_type_dropdown.currentText()
             self.settings[VALUE_LABELS[7]] = self.auto_start_checkbox.isChecked()
-
-            # Save the updated key mappings as key names
             for label, dropdown in self.key_mapping_dropdowns.items():
                 self.settings[label] = dropdown.currentText()
-
             save_settings(self.settings)
-
             restart_woot_rat_thread()
-
             QMessageBox.information(self, "Success", "Settings updated successfully!")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
 
-
     def toggle_auto_start(self, state):
-        """
-        Enable or disable auto-start based on the checkbox state.
-
-        Args:
-            state (int): The state of the checkbox (Qt.Checked or Qt.Unchecked).
-        """
         enable = state == Qt.Checked
         app_path = os.path.abspath(sys.argv[0])
         try:
@@ -244,4 +259,27 @@ class SettingsWindow(QMainWindow):
             save_settings(self.settings)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to update auto-start: {e}")
+
+    def plot_curve(self):
+        deadzone = self.deadzone_slider.value() / 100.0
+        outer_deadzone = self.outer_deadzone_slider.value() / 100.0
+        curve_factor = float(self.curve_factor_dropdown.currentText())
+        curve_type = self.curve_type_dropdown.currentText()
+        x = np.linspace(0, 1, 200)
+        y = [
+            self.engine.process_input(
+                val, deadzone, curve_factor, outer_deadzone, curve_type
+            ) for val in x
+        ]
+        self.curve_ax.clear()
+        self.curve_ax.plot(x, y, label="Processed Output")
+        self.curve_ax.axvline(deadzone, color='red', linestyle='--', label='Deadzone')
+        self.curve_ax.axvline(outer_deadzone, color='orange', linestyle='--', label='Outer Deadzone')
+        self.curve_ax.set_xlabel("Raw Input")
+        self.curve_ax.set_ylabel("Processed Output")
+        self.curve_ax.set_title("Analog Response Curve")
+        self.curve_ax.set_xlim(0, 1)
+        self.curve_ax.set_ylim(0, 1)
+        self.curve_ax.legend()
+        self.curve_canvas.draw()
 
