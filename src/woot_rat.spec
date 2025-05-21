@@ -12,6 +12,7 @@ a = Analysis(
         ('gui/keymap_tab.py', 'gui'),
         ('gui/diagnostic_tab.py', 'gui'),
         ('gui/support_tab.py', 'gui'),
+        ('gui/info_tab.py', 'gui'),
         ('gui/woot_rat_gui.py', 'gui'),
         ('resources/woot_rat.png', 'resources'),
         ('resources/rat.png', 'resources'),

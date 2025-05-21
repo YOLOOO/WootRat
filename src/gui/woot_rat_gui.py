@@ -19,6 +19,7 @@ from gui.general_tab import GeneralTab
 from gui.keymap_tab import KeyMappingTab
 from gui.diagnostic_tab import DiagnosticsTab
 from gui.support_tab import SupportTab
+from gui.info_tab import InfoTab
 
 ALL_KEYS = list(KEYCODES.keys())
 
@@ -43,7 +44,7 @@ class SettingsWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("Woot Rat Settings")
-        self.setGeometry(100, 100, 400, 600)
+        self.setGeometry(100, 100, 450, 600)
 
         icon_path = get_resource_path("resources/woot_rat.png")
         self.setWindowIcon(QIcon(icon_path))
@@ -54,10 +55,12 @@ class SettingsWindow(QMainWindow):
         self.keymap_tab = KeyMappingTab(self.settings, DIRECTION_LABELS, ALL_KEYS, KEYCODES)
         self.diagnostics_tab = DiagnosticsTab(self.settings)
         self.support_tab = SupportTab(get_resource_path)
+        self.info_tab = InfoTab()
 
         tab_widget.addTab(self.general_tab, "General")
         tab_widget.addTab(self.keymap_tab, "Key Mapping")
         tab_widget.addTab(self.diagnostics_tab, "Diagnostics")
+        tab_widget.addTab(self.info_tab, "Info")
         tab_widget.addTab(self.support_tab, "Support")
 
         # Add tabs to main layout
