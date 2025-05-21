@@ -43,7 +43,7 @@ class SettingsWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("Woot Rat Settings")
+        self.setWindowTitle("WootRat Settings")
         self.setGeometry(100, 100, 450, 600)
 
         icon_path = get_resource_path("resources/woot_rat.png")
