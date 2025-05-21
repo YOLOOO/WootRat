@@ -57,7 +57,7 @@ DIRECTION_LABELS = [
 VALUE_LABELS = [
     "Mouse Sensitivity",
     "Scroll Sensitivity",
-    "Y Sensitivity Adjustment",
+    "Vertical -Sensitivity",
     "Curve Factor",
     "Activation Point",
     "Maximum Actuation",
@@ -73,7 +73,7 @@ default_settings = {
     VALUE_LABELS[3]: 10.0,
     VALUE_LABELS[4]: 0.1,
     VALUE_LABELS[5]: 1.0,
-    VALUE_LABELS[6]: 'power',
+    VALUE_LABELS[6]: CURVE_LABELS[0],
     DIRECTION_LABELS[0]: KEYCODES['Arrow Up'],
     DIRECTION_LABELS[1]: KEYCODES['Arrow Down'],
     DIRECTION_LABELS[2]: KEYCODES['Arrow Left'],

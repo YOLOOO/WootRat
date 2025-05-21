@@ -23,6 +23,8 @@ from gui.info_tab import InfoTab
 
 ALL_KEYS = list(KEYCODES.keys())
 
+#TODO: Fix names for deadzone to the updated ones.
+
 class SettingsWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -80,7 +82,7 @@ class SettingsWindow(QMainWindow):
         # --- Tab change logic ---
         def on_tab_changed(index):
             tab_name = tab_widget.tabText(index)
-            if tab_name == 'Support':
+            if tab_name == 'Support' or tab_name == "Info":
                 self.save_button.hide()
             else:
                 self.save_button.show()

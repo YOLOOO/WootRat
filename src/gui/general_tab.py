@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QCheckBox
 from PyQt5.QtCore import Qt
 
+#TODO: Fix names for deadzone to the updated ones.
+
 class GeneralTab(QWidget):
     def __init__(self, settings, value_labels):
         super().__init__()
@@ -15,7 +17,7 @@ class GeneralTab(QWidget):
 
         y_sensitivity_label = QLabel(value_labels[2])
         self.y_sensitivity_slider = QSlider(Qt.Horizontal)
-        self.y_sensitivity_slider.setRange(0, 50)
+        self.y_sensitivity_slider.setRange(0, 80)
         self.y_sensitivity_slider.setValue(int(settings[value_labels[2]] * 100))
         layout.addWidget(y_sensitivity_label)
         layout.addWidget(self.y_sensitivity_slider)
@@ -30,7 +32,7 @@ class GeneralTab(QWidget):
         # Curve Factor as Slider
         curve_factor_label = QLabel(value_labels[3])
         self.curve_factor_slider = QSlider(Qt.Horizontal)
-        self.curve_factor_slider.setRange(10, 100)  # Represents 1.0 to 10.0
+        self.curve_factor_slider.setRange(10, 100)
         curve_factor_value = int(float(settings[value_labels[3]]) * 10)
         self.curve_factor_slider.setValue(curve_factor_value)
         self.curve_factor_value_label = QLabel(f"{curve_factor_value / 10:.1f}")
