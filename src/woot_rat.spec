@@ -8,6 +8,11 @@ a = Analysis(
         ('resources/wooting_analog_sdk.dll', 'resources')
     ],
     datas=[
+        ('gui/general_tab.py', 'gui'),
+        ('gui/keymap_tab.py', 'gui'),
+        ('gui/diagnostic_tab.py', 'gui'),
+        ('gui/support_tab.py', 'gui'),
+        ('gui/woot_rat_gui.py', 'gui'),
         ('resources/woot_rat.png', 'resources'),
         ('resources/rat.png', 'resources'),
         ('resources/woot_rat.ico', 'resources'),
