@@ -43,7 +43,7 @@ def add_to_startup(app_path, name):
         os.makedirs(os.path.dirname(plist_path), exist_ok=True)
         with open(plist_path, "w") as f:
             f.write(plist_content)
-        os.chmod(plist_path, 0o644)  # Ensure the file has the correct permissions
+        os.chmod(plist_path, 0o644)
         print(f"LaunchAgent entry created at: {plist_path}")
     except Exception as e:
         print(f"Failed to add to startup: {e}")

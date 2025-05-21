@@ -54,8 +54,8 @@ VALUE_LABELS = [
     "Scroll Sensitivity",
     "Y Sensitivity Adjustment",
     "Curve Factor",
-    "Deadzone",
-    "Outer Deadzone",
+    "Actication Point",
+    "Maximum Actuation",
     "Curve Type",
     "Auto Start"
 ]

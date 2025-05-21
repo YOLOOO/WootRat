@@ -1,5 +1,8 @@
 import threading
-from utils.settings import load_settings, DIRECTION_LABELS, KEYCODES, default_settings, VALUE_LABELS
+from utils.settings import (
+    load_settings, DIRECTION_LABELS, KEYCODES,
+    default_settings, VALUE_LABELS
+    )
 from logic.woot_rat_engine import WootRatEngine
 
 woot_rat_thread = None
@@ -102,8 +105,8 @@ def restart_woot_rat_thread(key_mapping=None):
         settings[VALUE_LABELS[2]],
         settings[VALUE_LABELS[3]],
         settings[VALUE_LABELS[4]],
-        settings[VALUE_LABELS[5]],  # Outer Deadzone (default 1.0)
-        settings[VALUE_LABELS[6]],#TUPE
+        settings[VALUE_LABELS[5]],
+        settings[VALUE_LABELS[6]],
         key_mapping,
         stop_event
     )
