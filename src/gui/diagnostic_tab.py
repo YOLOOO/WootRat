@@ -1,16 +1,17 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QComboBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
+from utils.settings import CURVE_LABELS, VALUE_LABELS
 
 class DiagnosticsTab(QWidget):
     def __init__(self, settings):
         super().__init__()
         layout = QVBoxLayout()
 
-        curve_type_label = QLabel("Curve Type")
+        curve_type_label = QLabel(VALUE_LABELS[6])
         self.curve_type_dropdown = QComboBox()
-        self.curve_type_dropdown.addItems(["power", "log", "s_curve", "linear"])
-        self.curve_type_dropdown.setCurrentText(settings.get("Curve Type", "power"))
+        self.curve_type_dropdown.addItems([CURVE_LABELS[0], CURVE_LABELS[1], CURVE_LABELS[2], CURVE_LABELS[3]])
+        self.curve_type_dropdown.setCurrentText(settings.get(VALUE_LABELS[6], CURVE_LABELS[0]))
         layout.addWidget(curve_type_label)
         layout.addWidget(self.curve_type_dropdown)
 

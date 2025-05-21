@@ -1,5 +1,3 @@
-import os
-import sys
 import json
 from utils.paths import get_runtime_settings
 
@@ -39,6 +37,13 @@ KEYCODES = {
     "Print Screen": 0x46, "Pause": 0x48
 }
 
+CURVE_LABELS = [
+    'Power',
+    'Log',
+    'S-Curve',
+    'Linear'
+]
+
 DIRECTION_LABELS = [
     "Mouse Up",
     "Mouse Down",
@@ -54,7 +59,7 @@ VALUE_LABELS = [
     "Scroll Sensitivity",
     "Y Sensitivity Adjustment",
     "Curve Factor",
-    "Actication Point",
+    "Activation Point",
     "Maximum Actuation",
     "Curve Type",
     "Auto Start"

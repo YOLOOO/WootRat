@@ -90,7 +90,7 @@ class SettingsWindow(QMainWindow):
         # Connect sliders and dropdowns to plot_curve
         self.general_tab.deadzone_slider.valueChanged.connect(self.plot_curve)
         self.general_tab.outer_deadzone_slider.valueChanged.connect(self.plot_curve)
-        self.general_tab.curve_factor_dropdown.currentTextChanged.connect(self.plot_curve)
+        self.general_tab.curve_factor_slider.valueChanged.connect(self.plot_curve)
         self.diagnostics_tab.curve_type_dropdown.currentTextChanged.connect(self.plot_curve)
 
         # Initial curve plot
@@ -104,7 +104,7 @@ class SettingsWindow(QMainWindow):
             self.settings[VALUE_LABELS[0]] = self.general_tab.mouse_sensitivity_slider.value()
             self.settings[VALUE_LABELS[1]] = self.general_tab.scroll_sensitivity_slider.value() / 10.0
             self.settings[VALUE_LABELS[2]] = self.general_tab.y_sensitivity_slider.value() / 100.0
-            self.settings[VALUE_LABELS[3]] = float(self.general_tab.curve_factor_dropdown.currentText())
+            self.settings[VALUE_LABELS[3]] = self.general_tab.curve_factor_slider.value() / 10.0
             self.settings[VALUE_LABELS[4]] = self.general_tab.deadzone_slider.value() / 100.0
             self.settings[VALUE_LABELS[5]] = self.general_tab.outer_deadzone_slider.value() / 100.0
             self.settings[VALUE_LABELS[6]] = self.diagnostics_tab.curve_type_dropdown.currentText()
@@ -135,7 +135,7 @@ class SettingsWindow(QMainWindow):
     def plot_curve(self):
         deadzone = self.general_tab.deadzone_slider.value() / 100.0
         outer_deadzone = self.general_tab.outer_deadzone_slider.value() / 100.0
-        curve_factor = float(self.general_tab.curve_factor_dropdown.currentText())
+        curve_factor = self.general_tab.curve_factor_slider.value() / 10.0
         curve_type = self.diagnostics_tab.curve_type_dropdown.currentText()
         x = np.linspace(0, 1, 200)
         y = [

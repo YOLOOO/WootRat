@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QComboBox, QCheckBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QCheckBox
 from PyQt5.QtCore import Qt
 
 class GeneralTab(QWidget):
@@ -27,12 +27,21 @@ class GeneralTab(QWidget):
         layout.addWidget(scroll_sensitivity_label)
         layout.addWidget(self.scroll_sensitivity_slider)
 
+        # Curve Factor as Slider
         curve_factor_label = QLabel(value_labels[3])
-        self.curve_factor_dropdown = QComboBox()
-        self.curve_factor_dropdown.addItems([f"{x:.1f}" for x in [i * 0.5 for i in range(2, 21)]])
-        self.curve_factor_dropdown.setCurrentText(str(settings[value_labels[3]]))
+        self.curve_factor_slider = QSlider(Qt.Horizontal)
+        self.curve_factor_slider.setRange(10, 100)  # Represents 1.0 to 10.0
+        curve_factor_value = int(float(settings[value_labels[3]]) * 10)
+        self.curve_factor_slider.setValue(curve_factor_value)
+        self.curve_factor_value_label = QLabel(f"{curve_factor_value / 10:.1f}")
+        self.curve_factor_slider.valueChanged.connect(
+            lambda v: self.curve_factor_value_label.setText(f"{v/10:.1f}")
+        )
+        curve_factor_layout = QHBoxLayout()
+        curve_factor_layout.addWidget(self.curve_factor_slider)
+        curve_factor_layout.addWidget(self.curve_factor_value_label)
         layout.addWidget(curve_factor_label)
-        layout.addWidget(self.curve_factor_dropdown)
+        layout.addLayout(curve_factor_layout)
 
         # Deadzone
         deadzone_label = QLabel(value_labels[4])
