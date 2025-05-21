@@ -19,6 +19,18 @@ ALL_KEYS = list(KEYCODES.keys())
 class SettingsWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # Try to set dark title bar on Windows 10/11
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                hwnd = int(self.winId())
+                DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                value = ctypes.c_int(1)
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(value), ctypes.sizeof(value)
+                )
+            except Exception as e:
+                print("Could not set dark mode for title bar:", e)
         self.settings = load_settings()
         self.init_ui()
 
