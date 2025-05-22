@@ -74,23 +74,35 @@ class WootRatEngine:
 
         # Normalize between activation_point and maximum_actuation
         adj_value = (raw_value - activation_point) / (maximum_actuation - activation_point)
-        adj_value = max(0.0, min(adj_value, 1.0))  # Clamp
+        adj_value = max(0.0, min(adj_value, 1.0))
 
         # Apply curve
         if curve_type == CURVE_LABELS[0]:
             return math.pow(adj_value, curve_factor)
         elif curve_type == CURVE_LABELS[1]:
-            # log1p(x) = log(1 + x), safe for x=0
             return math.log1p(curve_factor * adj_value) / math.log1p(curve_factor)
         elif curve_type == CURVE_LABELS[2]:
-            # S-curve (sigmoid), curve_factor controls steepness
             return 1 / (1 + math.exp(-curve_factor * (adj_value - 0.5)))
         elif curve_type == CURVE_LABELS[3]:
             return adj_value
         else:
             raise ValueError(f"Unknown curve_type: {curve_type}")
 
-    def run(self, sensitivity_m=15.0, sensitivity_s=0.5, y_sensitivity_adjustment=0.0, curve_factor=2.0, activation_point=0.1, maximum_actuation=1.0, curve_type=None, key_mapping=None, stop_event=None):
+    def run(
+        self,
+        sensitivity_m=15.0,
+        sensitivity_s=0.5,
+        y_sensitivity_adjustment=0.0,
+        curve_factor=2.0,
+        activation_point=0.1,
+        maximum_actuation=1.0,
+        curve_type=None,
+        key_mapping=None,
+        stop_event=None,
+        use_activation_key=False,
+        activation_key=None,
+        get_pressed_keys=None
+    ):
         """
         Main loop for processing analog input and controlling mouse movement and scrolling.
 
@@ -102,6 +114,9 @@ class WootRatEngine:
             key_mapping (dict): Dictionary mapping actions (e.g., "Up", "Down") to key names.
             y_sensitivity_adjustment (float): Adjustment factor for Y-axis sensitivity.
             stop_event (threading.Event): Event to signal the thread to stop.
+            use_activation_key (bool): Whether to require an activation key to be held.
+            activation_key (str): The activation key name.
+            get_pressed_keys (callable): Function returning set/list of currently pressed key names.
 
         Raises:
             ValueError: If stop_event is not provided.
@@ -115,7 +130,6 @@ class WootRatEngine:
             for action, key_name in key_mapping.items()
         }
 
-        # Use DIRECTION_LABELS to extract the correct keys
         try:
             up = keys[DIRECTION_LABELS[0]]
             down = keys[DIRECTION_LABELS[1]]
@@ -130,6 +144,14 @@ class WootRatEngine:
 
         while not stop_event.is_set():
             try:
+                # Activation logic
+                if use_activation_key and activation_key and get_pressed_keys is not None:
+                    pressed_keys = get_pressed_keys()
+                    if activation_key not in pressed_keys:
+                        time.sleep(0.01)
+                        # Skip processing if activation key is not held
+                        continue  
+
                 dx = dy = scr_x = scr_y = 0.0
 
                 # Read analog values for movement

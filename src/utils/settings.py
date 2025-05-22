@@ -62,7 +62,9 @@ VALUE_LABELS = [
     "Activation Point",
     "Maximum Actuation",
     "Curve Type",
-    "Auto Start"
+    "Auto Start",
+    "Use Activation Key",
+    "Activation Key"
 ]
 
 # Default settings
@@ -82,6 +84,8 @@ default_settings = {
     DIRECTION_LABELS[5]: KEYCODES['Page Down'],
     DIRECTION_LABELS[6]: KEYCODES['End'],
     DIRECTION_LABELS[7]: KEYCODES['Home'],
+    VALUE_LABELS[8]: False,
+    VALUE_LABELS[9]: KEYCODES['Alt'],
     VALUE_LABELS[7]: False
 }
 

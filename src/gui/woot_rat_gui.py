@@ -105,7 +105,7 @@ class SettingsWindow(QMainWindow):
         try:
             self.settings[VALUE_LABELS[0]] = self.general_tab.mouse_sensitivity_slider.value()
             self.settings[VALUE_LABELS[1]] = self.general_tab.scroll_sensitivity_slider.value() / 10.0
-            self.settings[VALUE_LABELS[2]] = self.general_tab.y_sensitivity_slider.value() / 100.0
+            self.settings[VALUE_LABELS[2]] = self.general_tab.y_sensitivity_slider.value() /  80.0 
             self.settings[VALUE_LABELS[3]] = self.general_tab.curve_factor_slider.value() / 10.0
             self.settings[VALUE_LABELS[4]] = self.general_tab.deadzone_slider.value() / 100.0
             self.settings[VALUE_LABELS[5]] = self.general_tab.outer_deadzone_slider.value() / 100.0
@@ -113,6 +113,9 @@ class SettingsWindow(QMainWindow):
             self.settings[VALUE_LABELS[7]] = self.general_tab.auto_start_checkbox.isChecked()
             for label, dropdown in self.keymap_tab.key_mapping_dropdowns.items():
                 self.settings[label] = dropdown.currentText()
+            # Save activation key settings (outside the loop)
+            self.settings[VALUE_LABELS[8]] = self.keymap_tab.use_activation_key_checkbox.isChecked()
+            self.settings[VALUE_LABELS[9]] = self.keymap_tab.activation_key_dropdown.currentText()
             save_settings(self.settings)
             restart_woot_rat_thread()
             QMessageBox.information(self, "Success", "Settings updated successfully!")

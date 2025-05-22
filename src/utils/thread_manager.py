@@ -41,6 +41,17 @@ def start_woot_rat_thread():
 
     key_mapping = assemble_key_mapping_from_settings(settings)
 
+    # Get keypressed using Wooting SDK
+    def get_pressed_keys():
+        pressed = set()
+        for key_name in KEYCODES:
+            try:
+                if engine.sdk.wooting_analog_read_analog(KEYCODES[key_name]) > 0:
+                    pressed.add(key_name)
+            except Exception:
+                continue
+        return pressed
+
     args = (
         settings[VALUE_LABELS[0]],
         settings[VALUE_LABELS[1]],
@@ -50,7 +61,10 @@ def start_woot_rat_thread():
         settings[VALUE_LABELS[5]],
         settings[VALUE_LABELS[6]],
         key_mapping,
-        stop_event
+        stop_event,
+        settings[VALUE_LABELS[8]],
+        settings[VALUE_LABELS[9]],
+        get_pressed_keys
     )
     woot_rat_thread = threading.Thread(target=engine.run, args=args, daemon=True)
     woot_rat_thread.start()
@@ -99,6 +113,16 @@ def restart_woot_rat_thread(key_mapping=None):
     if key_mapping is None:
         key_mapping = assemble_key_mapping_from_settings(settings)
 
+    def get_pressed_keys():
+        pressed = set()
+        for key_name in KEYCODES:
+            try:
+                if engine.sdk.wooting_analog_read_analog(KEYCODES[key_name]) > 0:
+                    pressed.add(key_name)
+            except Exception:
+                continue
+        return pressed
+
     args = (
         settings[VALUE_LABELS[0]],
         settings[VALUE_LABELS[1]],
@@ -108,7 +132,10 @@ def restart_woot_rat_thread(key_mapping=None):
         settings[VALUE_LABELS[5]],
         settings[VALUE_LABELS[6]],
         key_mapping,
-        stop_event
+        stop_event,
+        settings[VALUE_LABELS[8]],
+        settings[VALUE_LABELS[9]],
+        get_pressed_keys
     )
     woot_rat_thread = threading.Thread(target=engine.run, args=args, daemon=True)
     woot_rat_thread.start()

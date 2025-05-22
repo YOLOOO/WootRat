@@ -18,7 +18,7 @@ class GeneralTab(QWidget):
         y_sensitivity_label = QLabel(value_labels[2])
         self.y_sensitivity_slider = QSlider(Qt.Horizontal)
         self.y_sensitivity_slider.setRange(0, 80)
-        self.y_sensitivity_slider.setValue(int(settings[value_labels[2]] * 100))
+        self.y_sensitivity_slider.setValue(int(settings[value_labels[2]] *  80))
         layout.addWidget(y_sensitivity_label)
         layout.addWidget(self.y_sensitivity_slider)
 
