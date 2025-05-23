@@ -64,18 +64,30 @@ That's it! Have fun and make it your own.
 ### Folder Structure
 src/
 - ├── gui/
+- │   └── diagnostic_tab.py
+- │   └── general_tab.py
+- │   └── info_tab.py
+- │   └── keymap_tab.py
+- │   └── support_tab.py
 - │   └── woot_rat_gui.py
 - ├── logic/
 - │   └── woot_rat_engine.py
 - ├── resources/
-- │   ├── woot_rat.ico
-- │   ├── woot_rat.png
+- │   └── mouse.png
+- │   └── rat.png
+- │   └── wootRat_song.wav
+- │   └── woot_rat.ico
+- │   └── woot_rat.png
 - │   └── wooting_analog_sdk.dll
 - ├── utils/
-- │   ├── paths.py
-- │   ├── settings.py
-- │   ├── style.qss
-- │   └── settings.json
+- │   └── paths.py
+- │   └── settings.py
+- │   └── startup_linux.py
+- │   └── startup_mac.py
+- │   └── startup_platform.py
+- │   └── startup_windows.py
+- │   └── style.qss
+- │   └── thread_manager.py
 - └── main.py
 - └── woot_rat.spec
 
