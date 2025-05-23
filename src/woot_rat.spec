@@ -16,7 +16,9 @@ a = Analysis(
         ('gui/woot_rat_gui.py', 'gui'),
         ('resources/woot_rat.png', 'resources'),
         ('resources/rat.png', 'resources'),
+        ('resources/mouse.png', 'resources'),
         ('resources/woot_rat.ico', 'resources'),
+        ('resources/wootRat_song.wav', 'resources'),
         ('utils/style.qss', 'utils'),
         ('utils/paths.py', 'utils')
     ],

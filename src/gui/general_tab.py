@@ -8,26 +8,50 @@ class GeneralTab(QWidget):
         super().__init__()
         layout = QVBoxLayout()
 
+        # Mouse Sensitivity
         mouse_sensitivity_label = QLabel(value_labels[0])
         self.mouse_sensitivity_slider = QSlider(Qt.Horizontal)
         self.mouse_sensitivity_slider.setRange(1, 80)
         self.mouse_sensitivity_slider.setValue(int(settings[value_labels[0]]))
+        self.mouse_sensitivity_value_label = QLabel(str(self.mouse_sensitivity_slider.value()))
+        self.mouse_sensitivity_slider.valueChanged.connect(
+            lambda v: self.mouse_sensitivity_value_label.setText(str(v))
+        )
+        mouse_sensitivity_layout = QHBoxLayout()
+        mouse_sensitivity_layout.addWidget(self.mouse_sensitivity_slider)
+        mouse_sensitivity_layout.addWidget(self.mouse_sensitivity_value_label)
         layout.addWidget(mouse_sensitivity_label)
-        layout.addWidget(self.mouse_sensitivity_slider)
+        layout.addLayout(mouse_sensitivity_layout)
 
+        # Y Sensitivity
         y_sensitivity_label = QLabel(value_labels[2])
         self.y_sensitivity_slider = QSlider(Qt.Horizontal)
         self.y_sensitivity_slider.setRange(0, 80)
         self.y_sensitivity_slider.setValue(int(settings[value_labels[2]] *  80))
+        self.y_sensitivity_value_label = QLabel(f"{self.y_sensitivity_slider.value() / 80:.2f}")
+        self.y_sensitivity_slider.valueChanged.connect(
+            lambda v: self.y_sensitivity_value_label.setText(f"{v/80:.2f}")
+        )
+        y_sensitivity_layout = QHBoxLayout()
+        y_sensitivity_layout.addWidget(self.y_sensitivity_slider)
+        y_sensitivity_layout.addWidget(self.y_sensitivity_value_label)
         layout.addWidget(y_sensitivity_label)
-        layout.addWidget(self.y_sensitivity_slider)
+        layout.addLayout(y_sensitivity_layout)
 
+        # Scroll Sensitivity
         scroll_sensitivity_label = QLabel(value_labels[1])
         self.scroll_sensitivity_slider = QSlider(Qt.Horizontal)
         self.scroll_sensitivity_slider.setRange(1, 20)
         self.scroll_sensitivity_slider.setValue(int(settings[value_labels[1]] * 10))
+        self.scroll_sensitivity_value_label = QLabel(f"{self.scroll_sensitivity_slider.value() / 10:.1f}")
+        self.scroll_sensitivity_slider.valueChanged.connect(
+            lambda v: self.scroll_sensitivity_value_label.setText(f"{v/10:.1f}")
+        )
+        scroll_sensitivity_layout = QHBoxLayout()
+        scroll_sensitivity_layout.addWidget(self.scroll_sensitivity_slider)
+        scroll_sensitivity_layout.addWidget(self.scroll_sensitivity_value_label)
         layout.addWidget(scroll_sensitivity_label)
-        layout.addWidget(self.scroll_sensitivity_slider)
+        layout.addLayout(scroll_sensitivity_layout)
 
         # Curve Factor as Slider
         curve_factor_label = QLabel(value_labels[3])

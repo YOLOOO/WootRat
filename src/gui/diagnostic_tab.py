@@ -20,7 +20,7 @@ class DiagnosticsTab(QWidget):
 
         curve_explanation = QLabel(
             "Note: Raw input 0.0–1.0 corresponds to 0.0–4.0 mm of analog travel\n"
-            "on most Wooting switches. 0.0 = not pressed, 1.0 = fully pressed (4.0 mm)."
+            "on most Wooting Lekker switches. 0.0 = not pressed, 1.0 = fully pressed (4.0 mm)."
         )
         curve_explanation.setStyleSheet("color: #bbbbbb; font-size: 12px;")
         curve_explanation.setWordWrap(True)

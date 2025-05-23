@@ -71,8 +71,8 @@ VALUE_LABELS = [
 default_settings = {
     VALUE_LABELS[0]: 23,
     VALUE_LABELS[1]: 0.4,
-    VALUE_LABELS[2]: 0.23,
-    VALUE_LABELS[3]: 10.0,
+    VALUE_LABELS[2]: 0.0,
+    VALUE_LABELS[3]: 5.0,
     VALUE_LABELS[4]: 0.1,
     VALUE_LABELS[5]: 1.0,
     VALUE_LABELS[6]: CURVE_LABELS[0],
