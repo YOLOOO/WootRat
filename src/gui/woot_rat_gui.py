@@ -72,6 +72,7 @@ class SettingsWindow(QMainWindow):
         button_layout = QHBoxLayout()
         self.save_button = QPushButton("Save Settings")
         self.save_button.clicked.connect(self.save_settings)
+        self.save_button.clicked.connect(lambda: self.toggle_auto_start(Qt.Checked if self.general_tab.auto_start_checkbox.isChecked() else Qt.Unchecked))
         button_layout.addWidget(self.save_button)
         main_layout.addLayout(button_layout)
 
